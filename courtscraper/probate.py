@@ -2,9 +2,11 @@ import requests
 import lxml.html
 
 class ProbateScraper(requests.Session):
+    def __init__(self, url):
+        self.url = url
+
     def scrape(self):
-        url = 'https://casesearch.cookcountyclerkofcourt.org/ProbateDocketSearch.aspx'
-        response = requests.get(url).text
+        response = requests.get(self.url).text
 
         tree = lxml.html.fromstring(response)
         viewstate = tree.xpath("//input[@id='__VIEWSTATE']")[0].value
@@ -22,7 +24,17 @@ class ProbateScraper(requests.Session):
             'ctl00$MainContent$txtCaseNumber': '000001',
             'ctl00$MainContent$btnSearch': 'Start New Search'
         }
-        search_response = requests.post(url, data=request_body).text
+        search_response = requests.post(self.url, data=request_body).text
 
-scraper = ProbateScraper()
+        result_tree = lxml.html.fromstring(search_response)
+        participant = result_tree.xpath("//span[@id='MainContent_lblPartyTitle']")[0].text[10:]
+
+        party_info_table = result_tree.xpath("//table[@id='MainContent_gdvPartyInformationDefendant']")[0]
+        defendant = party_info_table.xpath("//td") # WIP
+
+
+        breakpoint()
+
+scraper = ProbateScraper('https://casesearch.cookcountyclerkofcourt.org/ProbateDocketSearch.aspx'
+)
 scraper.scrape()
