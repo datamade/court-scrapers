@@ -1,0 +1,211 @@
+{
+    "attorney": "",
+    "calendar": "11",
+    "case_activity": [
+        {
+            "activity": "PET. FOR PROBATE OF DECEDENT'S EST. - WILL, INDEP. ADMIN.",
+            "activity_date": "2016-01-04",
+            "attorney": "BUCARO THOMAS & ASS",
+            "court_date": "",
+            "court_fee": "$444.00",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "TAYLOR WOODROW"
+        },
+        {
+            "activity": "AFFIDAVIT OF HEIRSHIP FILED",
+            "activity_date": "2016-01-20",
+            "attorney": "BUCARO THOMAS & ASS",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "TAYLOR WOODROW"
+        },
+        {
+            "activity": "WAIVER OF NOTICE FILED",
+            "activity_date": "2016-01-20",
+            "attorney": "BUCARO THOMAS & ASS",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "TAYLOR WOODROW"
+        },
+        {
+            "activity": "COPY OF WILL",
+            "activity_date": "2016-01-20",
+            "attorney": "BUCARO THOMAS & ASS",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "TAYLOR WOODROW"
+        },
+        {
+            "activity": "WILL ADMITTED TO PROBATE - ALLOWED",
+            "activity_date": "2016-01-20",
+            "attorney": "",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "O'MALLEY, KAREN L",
+            "participant": "TAYLOR WOODROW"
+        },
+        {
+            "activity": "ORDER DECLARING HEIRSHIP - ALLOWED",
+            "activity_date": "2016-01-20",
+            "attorney": "",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "O'MALLEY, KAREN L",
+            "participant": "TAYLOR WOODROW"
+        },
+        {
+            "activity": "ORDER APPTG. INDEPENDENT EXECUTOR - LETTERS OF OFFICE TO ISSUE - ALLOWED",
+            "activity_date": "2016-01-20",
+            "attorney": "",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "O'MALLEY, KAREN L",
+            "participant": "TAYLOR WOODROW"
+        },
+        {
+            "activity": "BOND OF REPRESENTATIVE APPROVED - NO SURETY - ALLOWED",
+            "activity_date": "2016-01-20",
+            "attorney": "",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "O'MALLEY, KAREN L",
+            "participant": "TAYLOR WOODROW"
+        },
+        {
+            "activity": "ORDER TO FILE FINAL REPORT WITHIN 14 MONTHS - ALLOWED",
+            "activity_date": "2016-01-20",
+            "attorney": "",
+            "court_date": "03/20/2017",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "1000",
+            "judge": "O'MALLEY, KAREN L",
+            "participant": "TAYLOR WOODROW"
+        },
+        {
+            "activity": "MOTION FILED",
+            "activity_date": "2016-09-23",
+            "attorney": "BUCARO THOMAS & ASS",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "1814",
+            "court_time": "",
+            "judge": "",
+            "participant": "TAYLOR WOODROW"
+        },
+        {
+            "activity": "MOTION SCHEDULED TO CLOSE",
+            "activity_date": "2016-09-23",
+            "attorney": "BUCARO THOMAS & ASS",
+            "court_date": "10/11/2016",
+            "court_fee": "",
+            "court_room": "1814",
+            "court_time": "1015",
+            "judge": "",
+            "participant": "TAYLOR WOODROW"
+        },
+        {
+            "activity": "RECEIPT AND APPROVAL ON CLOSING OF INDEPENDENT ADMINISTRATION",
+            "activity_date": "2016-10-11",
+            "attorney": "BUCARO THOMAS & ASS",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "TAYLOR WOODROW"
+        },
+        {
+            "activity": "RECEIPT AND APPROVAL ON CLOSING OF INDEPENDENT ADMINISTRATION",
+            "activity_date": "2016-10-11",
+            "attorney": "BUCARO THOMAS & ASS",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "TAYLOR WOODROW"
+        },
+        {
+            "activity": "RECEIPT AND APPROVAL ON CLOSING OF INDEPENDENT ADMINISTRATION",
+            "activity_date": "2016-10-11",
+            "attorney": "BUCARO THOMAS & ASS",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "TAYLOR WOODROW"
+        },
+        {
+            "activity": "RECEIPT AND APPROVAL ON CLOSING OF INDEPENDENT ADMINISTRATION",
+            "activity_date": "2016-10-11",
+            "attorney": "BUCARO THOMAS & ASS",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "TAYLOR WOODROW"
+        },
+        {
+            "activity": "FINAL REPORT OF INDEPENDENT REPRESENTATIVE",
+            "activity_date": "2016-10-11",
+            "attorney": "BUCARO THOMAS & ASS",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "TAYLOR WOODROW"
+        },
+        {
+            "activity": "ORDER DISCHARGING REPRESENTATIVE AND CLOSING EST., INDEP. ADMIN. - ALLOWED",
+            "activity_date": "2016-10-11",
+            "attorney": "",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "O'MALLEY, KAREN L",
+            "participant": "TAYLOR WOODROW"
+        },
+        {
+            "activity": "STRIKE TRIAL DATE - ALLOWED",
+            "activity_date": "2016-10-11",
+            "attorney": "",
+            "court_date": "03/20/2017",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "O'MALLEY, KAREN L",
+            "participant": "TAYLOR WOODROW"
+        }
+    ],
+    "case_number": "",
+    "case_type": "PB",
+    "date_filed": "",
+    "defendant": "PRATER SHEA T",
+    "division": "",
+    "estate_of": "",
+    "filing_date": "2016-01-04"
+}
