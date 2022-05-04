@@ -1,5 +1,6 @@
-import requests
+import json
 import lxml.html
+import requests
 
 class ProbateScraper(requests.Session):
     def __init__(self, url):
@@ -29,6 +30,7 @@ class ProbateScraper(requests.Session):
         result_tree = lxml.html.fromstring(search_response)
 
         header = result_tree.xpath("//span[@id='MainContent_lblDetailHeader']")[0]
+        header_case_number = header.xpath(".//strong")[0].text
 
         participant = result_tree.xpath(".//span[@id='MainContent_lblPartyTitle']")[0].text[10:]
 
@@ -77,7 +79,6 @@ class ProbateScraper(requests.Session):
         else:
             case_type = ''
 
-
         # Party information
         party_info_table = result_tree.xpath("//table[@id='MainContent_gdvPartyInformationDefendant']")[0]
         defendant = party_info_table.xpath("./tr/td")[0].text.strip()
@@ -115,12 +116,10 @@ class ProbateScraper(requests.Session):
             'case_activity': case_activity,
         }
 
-        # json obj
-        # activity as array of objs
-        # scrape subdir with json objects
-        # each case is its own json file
-        # file name is case #
+        file_path = f'./courtscraper/scrape/{header_case_number}.json'
+        with open(file_path, 'w+') as output:
+            output.write(json.dumps(case_obj, sort_keys=True, indent=4))
 
-scraper = ProbateScraper('https://casesearch.cookcountyclerkofcourt.org/ProbateDocketSearch.aspx'
-)
-scraper.scrape()
+if __name__ == '__main__':
+    scraper = ProbateScraper('https://casesearch.cookcountyclerkofcourt.org/ProbateDocketSearch.aspx')
+    scraper.scrape()
