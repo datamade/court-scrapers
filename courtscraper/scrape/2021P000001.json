@@ -1,0 +1,233 @@
+{
+    "attorney": "",
+    "calendar": "25",
+    "case_activity": [
+        {
+            "activity": "PET. FOR PROBATE OF DECEDENT'S EST. - WILL, INDEP. ADMIN.",
+            "activity_date": "2021-01-04",
+            "attorney": "JENNER & BLOCK",
+            "court_date": "",
+            "court_fee": "$.01",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "MARDELL FRED"
+        },
+        {
+            "activity": "AFFIDAVIT OF HEIRSHIP FILED",
+            "activity_date": "2021-01-04",
+            "attorney": "JENNER & BLOCK",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "MARDELL FRED"
+        },
+        {
+            "activity": "WAIVER OF NOTICE FILED",
+            "activity_date": "2021-01-04",
+            "attorney": "JENNER & BLOCK",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "MARDELL FRED"
+        },
+        {
+            "activity": "WAIVER OF NOTICE FILED",
+            "activity_date": "2021-01-04",
+            "attorney": "JENNER & BLOCK",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "MARDELL FRED"
+        },
+        {
+            "activity": "MOTION FILED",
+            "activity_date": "2021-01-04",
+            "attorney": "JENNER & BLOCK",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "MARDELL FRED"
+        },
+        {
+            "activity": "CASE SET ON CASE MANAGEMENT CALL (DATE)",
+            "activity_date": "2021-01-04",
+            "attorney": "JENNER & BLOCK",
+            "court_date": "01/25/2021",
+            "court_fee": "",
+            "court_room": "1801",
+            "court_time": "1000",
+            "judge": "",
+            "participant": "MARDELL FRED"
+        },
+        {
+            "activity": "WAIVER OF NOTICE FILED",
+            "activity_date": "2021-01-13",
+            "attorney": "JENNER & BLOCK",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "MARDELL FRED"
+        },
+        {
+            "activity": "WAIVER OF NOTICE FILED",
+            "activity_date": "2021-01-13",
+            "attorney": "JENNER & BLOCK",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "MARDELL FRED"
+        },
+        {
+            "activity": "WAIVER OF NOTICE FILED",
+            "activity_date": "2021-01-15",
+            "attorney": "JENNER & BLOCK",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "MARDELL FRED"
+        },
+        {
+            "activity": "COPY OF WILL",
+            "activity_date": "2021-01-22",
+            "attorney": "JENNER & BLOCK",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "MARDELL FRED"
+        },
+        {
+            "activity": "AMENDED PETITION FILED",
+            "activity_date": "2021-01-22",
+            "attorney": "JENNER & BLOCK",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "MARDELL FRED"
+        },
+        {
+            "activity": "LETTERS OF OFFICE ISSUED",
+            "activity_date": "2021-01-25",
+            "attorney": "PRO SE",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "MARDELL FRED"
+        },
+        {
+            "activity": "AMENDED PETITION FILED",
+            "activity_date": "2021-01-25",
+            "attorney": "JENNER & BLOCK",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "MARDELL FRED"
+        },
+        {
+            "activity": "WILL ADMITTED TO PROBATE - ALLOWED",
+            "activity_date": "2021-01-25",
+            "attorney": "",
+            "court_date": "03/25/2022",
+            "court_fee": "",
+            "court_room": "1801",
+            "court_time": "1000",
+            "judge": "MURPHY, JAMES PATRICK",
+            "participant": "MARDELL FRED"
+        },
+        {
+            "activity": "WILL ADMITTED TO PROBATE - ALLOWED",
+            "activity_date": "2021-01-25",
+            "attorney": "",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "MURPHY, JAMES PATRICK",
+            "participant": "MARDELL FRED"
+        },
+        {
+            "activity": "ORDER DECLARING HEIRSHIP - ALLOWED",
+            "activity_date": "2021-01-25",
+            "attorney": "",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "MURPHY, JAMES PATRICK",
+            "participant": "MARDELL FRED"
+        },
+        {
+            "activity": "ORDER APPTG. INDEPENDENT EXECUTOR - LETTERS OF OFFICE TO ISSUE - ALLOWED",
+            "activity_date": "2021-01-25",
+            "attorney": "",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "MURPHY, JAMES PATRICK",
+            "participant": "MARDELL FRED"
+        },
+        {
+            "activity": "BOND OF REPRESENTATIVE APPROVED - NO SURETY - ALLOWED",
+            "activity_date": "2021-01-25",
+            "attorney": "",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "MURPHY, JAMES PATRICK",
+            "participant": "MARDELL FRED"
+        },
+        {
+            "activity": "ORDER TO FILE FINAL REPORT WITHIN 14 MONTHS - ALLOWED",
+            "activity_date": "2021-01-25",
+            "attorney": "",
+            "court_date": "03/25/2022",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "1000",
+            "judge": "MURPHY, JAMES PATRICK",
+            "participant": "MARDELL FRED"
+        },
+        {
+            "activity": "CERTIFICATE OF PUBLICATION FILED",
+            "activity_date": "2021-02-16",
+            "attorney": "PRO SE",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "MARDELL FRED"
+        }
+    ],
+    "case_number": "",
+    "case_type": "PB",
+    "date_filed": "",
+    "defendant": "MARDELL SUSAN E",
+    "division": "",
+    "estate_of": "",
+    "filing_date": "2021-01-04"
+}
