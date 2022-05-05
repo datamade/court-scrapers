@@ -1,0 +1,46 @@
+{
+    "attorney": "",
+    "calendar": "11",
+    "case_activity": [
+        {
+            "activity": "PET. FOR PROBATE OF DECEDENT'S EST. - WILL, INDEP. ADMIN.",
+            "activity_date": "2017-01-03",
+            "attorney": "LITHGOW JR ROBERT D",
+            "court_date": "",
+            "court_fee": "$453.00",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "MICELI RUTH E"
+        },
+        {
+            "activity": "CASE ELECTRONICALLY FILED",
+            "activity_date": "2017-01-03",
+            "attorney": "LITHGOW JR ROBERT D",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "MICELI RUTH E"
+        },
+        {
+            "activity": "ALIAS SUMMONS ISSUED - FEE PAID",
+            "activity_date": "2018-01-16",
+            "attorney": "LITHGOW JR ROBERT D",
+            "court_date": "",
+            "court_fee": "$6.00",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "MICELI RUTH E"
+        }
+    ],
+    "case_number": "",
+    "case_type": "PB",
+    "date_filed": "",
+    "defendant": "",
+    "division": "",
+    "estate_of": "",
+    "filing_date": "2017-01-03"
+}

@@ -1,0 +1,123 @@
+{
+    "attorney": "",
+    "calendar": "12",
+    "case_activity": [
+        {
+            "activity": "PET. FOR GUARDIANSHIP OF DISABLED PERSON (PERSON)",
+            "activity_date": "2018-01-02",
+            "attorney": "PRO SE",
+            "court_date": "",
+            "court_fee": "$168.00",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "COLEMAN ANTIONE"
+        },
+        {
+            "activity": "SUMMONS ISSUED FOR APPOINTMENT OF GUARDIAN FOR DISABLED PERSON",
+            "activity_date": "2018-01-02",
+            "attorney": "PRO SE",
+            "court_date": "02/20/2018",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "1100",
+            "judge": "",
+            "participant": "COLEMAN ANTIONE"
+        },
+        {
+            "activity": "EXHIBITS FILED",
+            "activity_date": "2018-01-02",
+            "attorney": "PRO SE",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "COLEMAN ANTIONE"
+        },
+        {
+            "activity": "APPLICATION TO DEFEND OR SUE AS A POOR PERSON",
+            "activity_date": "2018-01-02",
+            "attorney": "PRO SE",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "COLEMAN ANTIONE"
+        },
+        {
+            "activity": "MOTION SCHEDULED",
+            "activity_date": "2018-01-02",
+            "attorney": "PRO SE",
+            "court_date": "02/20/2018",
+            "court_fee": "",
+            "court_room": "1812",
+            "court_time": "1000",
+            "judge": "",
+            "participant": "COLEMAN ANTIONE"
+        },
+        {
+            "activity": "ORDER GRANTING RIGHT TO DEFEND OR SUE AS A POOR PERSON - ALLOWED",
+            "activity_date": "2018-01-02",
+            "attorney": "",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "DELGADO, KENT A",
+            "participant": "COLEMAN ANTIONE"
+        },
+        {
+            "activity": "CASE SET ON CASE MANAGEMENT CALL (DATE)",
+            "activity_date": "2018-01-02",
+            "attorney": "PRO SE",
+            "court_date": "02/14/2018",
+            "court_fee": "",
+            "court_room": "1812",
+            "court_time": "1100",
+            "judge": "",
+            "participant": "COLEMAN ANTIONE"
+        },
+        {
+            "activity": "LETTERS OF OFFICE ISSUED",
+            "activity_date": "2018-02-20",
+            "attorney": "PRO SE",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "COLEMAN ANTIONE"
+        },
+        {
+            "activity": "RIGHT TO DISCHARGE GUARDIAN OR MODIFY GUARDIANSHIP ORDER - ALLOWED",
+            "activity_date": "2018-02-20",
+            "attorney": "",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "OUTLAW, JESSE",
+            "participant": "COLEMAN ANTIONE"
+        },
+        {
+            "activity": "BOND OF REPRESENTATIVE APPROVED - NO SURETY - ALLOWED",
+            "activity_date": "2018-02-20",
+            "attorney": "",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "OUTLAW, JESSE",
+            "participant": "COLEMAN ANTIONE"
+        }
+    ],
+    "case_number": "",
+    "case_type": "PB",
+    "date_filed": "",
+    "defendant": "",
+    "division": "",
+    "estate_of": "",
+    "filing_date": "2018-01-02"
+}

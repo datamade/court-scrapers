@@ -21,7 +21,7 @@ class ProbateScraper(requests.Session):
                 '__VIEWSTATEGENERATOR': viewstategenerator,
                 '__EVENTVALIDATION': eventvalidation,
                 'ctl00$MainContent$rblSearchType': 'CaseNumber',
-                'ctl00$MainContent$txtCaseYear': year,
+                'ctl00$MainContent$txtCaseYear': str(year),
                 'ctl00$MainContent$txtCaseCode': 'P',
                 'ctl00$MainContent$txtCaseNumber': str(i),
                 'ctl00$MainContent$btnSearch': 'Start New Search'
@@ -32,6 +32,12 @@ class ProbateScraper(requests.Session):
 
             header = result_tree.xpath("//span[@id='MainContent_lblDetailHeader']")[0]
             header_case_number = header.xpath(".//strong")[0].text
+            if 'No information found' in header_case_number:
+                header_case_number = header_case_number.split(":")[1]
+                file_path = f'./courtscraper/scrape/{header_case_number}.json'
+                with open(file_path, 'w+') as output:
+                    output.write(json.dumps({}))
+                continue
 
             participant = result_tree.xpath(".//span[@id='MainContent_lblPartyTitle']")[0].text[10:]
 
@@ -127,7 +133,7 @@ class ProbateScraper(requests.Session):
 
 if __name__ == '__main__':
     scraper = ProbateScraper('https://casesearch.cookcountyclerkofcourt.org/ProbateDocketSearch.aspx')
-    years = [2016, 2017, 2018, 2019, 2020, 2021]
+    years = [2019, 2020, 2021]
     for year in years:
         scraper.scrape(year)
     # scraper.scrape(2016)

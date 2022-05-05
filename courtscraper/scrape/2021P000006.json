@@ -1,0 +1,145 @@
+{
+    "attorney": "",
+    "calendar": "11",
+    "case_activity": [
+        {
+            "activity": "PET. FOR LETTERS OF ADMIN. TO COLLECT",
+            "activity_date": "2021-01-04",
+            "attorney": "",
+            "court_date": "",
+            "court_fee": "$.01",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": ""
+        },
+        {
+            "activity": "",
+            "activity_date": "2021-01-04",
+            "attorney": "",
+            "court_date": "03/22/2022",
+            "court_fee": "",
+            "court_room": "1814",
+            "court_time": "",
+            "judge": "",
+            "participant": ""
+        },
+        {
+            "activity": "AFFIDAVIT OF HEIRSHIP FILED",
+            "activity_date": "2021-01-05",
+            "attorney": "",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": ""
+        },
+        {
+            "activity": "",
+            "activity_date": "2021-01-05",
+            "attorney": "",
+            "court_date": "",
+            "court_fee": "$141.01",
+            "court_room": "5 PR4",
+            "court_time": "",
+            "judge": "",
+            "participant": ""
+        },
+        {
+            "activity": "LETTERS OF OFFICE ISSUED",
+            "activity_date": "2021-01-26",
+            "attorney": "PRO SE",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": ""
+        },
+        {
+            "activity": "ORDER DECLARING HEIRSHIP - ALLOWED",
+            "activity_date": "2021-01-26",
+            "attorney": "",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "MCGUIRE, TERRENCE J.",
+            "participant": ""
+        },
+        {
+            "activity": "BOND OF REPRESENTATIVE APPROVED SURETY - ALLOWED",
+            "activity_date": "2021-01-26",
+            "attorney": "MAJER, JOHN S",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "MCGUIRE, TERRENCE J.",
+            "participant": ""
+        },
+        {
+            "activity": "BOND OF REPRESENTATIVE APPROVED SURETY - ALLOWED",
+            "activity_date": "2021-01-26",
+            "attorney": "",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "MCGUIRE, TERRENCE J.",
+            "participant": ""
+        },
+        {
+            "activity": "LETTERS OF OFFICE AS INDEPENDENT ADMINISTRATOR ISSUED - ALLOWED",
+            "activity_date": "2021-01-26",
+            "attorney": "",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "MCGUIRE, TERRENCE J.",
+            "participant": ""
+        },
+        {
+            "activity": "ORDER ASSETS TO REMAIN IN STATE - ALLOWED -",
+            "activity_date": "2021-01-26",
+            "attorney": "",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "MCGUIRE, TERRENCE J.",
+            "participant": ""
+        },
+        {
+            "activity": "ORDER TO FILE FINAL REPORT WITHIN 14 MONTHS - ALLOWED",
+            "activity_date": "2021-01-26",
+            "attorney": "",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "MCGUIRE, TERRENCE J.",
+            "participant": ""
+        },
+        {
+            "activity": "CASE ASSIGNED TO ZOOM HEARING - ALLOWED",
+            "activity_date": "2022-03-22",
+            "attorney": "",
+            "court_date": "05/19/2022",
+            "court_fee": "",
+            "court_room": "1814",
+            "court_time": "1015",
+            "judge": "",
+            "participant": ""
+        }
+    ],
+    "case_number": "",
+    "case_type": "PB",
+    "date_filed": "",
+    "defendant": "",
+    "division": "",
+    "estate_of": "",
+    "filing_date": "2021-01-04"
+}

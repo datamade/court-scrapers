@@ -1,0 +1,68 @@
+{
+    "attorney": "",
+    "calendar": "08",
+    "case_activity": [
+        {
+            "activity": "PET. FOR PROBATE OF DECEDENT'S EST. - INTESTATE, INDEP. ADMIN.",
+            "activity_date": "2018-01-02",
+            "attorney": "PRO SE",
+            "court_date": "",
+            "court_fee": "$293.00",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "JOHNSON SR ALLAN A"
+        },
+        {
+            "activity": "EXHIBITS FILED",
+            "activity_date": "2018-01-02",
+            "attorney": "PRO SE",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "JOHNSON SR ALLAN A"
+        },
+        {
+            "activity": "CASE SET ON CASE MANAGEMENT CALL (DATE)",
+            "activity_date": "2018-01-02",
+            "attorney": "PRO SE",
+            "court_date": "01/16/2018",
+            "court_fee": "",
+            "court_room": "1801",
+            "court_time": "1015",
+            "judge": "",
+            "participant": "JOHNSON SR ALLAN A"
+        },
+        {
+            "activity": "ORDER FOR REIMBURSEMENT OF FUNDS - ALLOWED",
+            "activity_date": "2018-01-16",
+            "attorney": "",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "COLEMAN, SUSAN M",
+            "participant": "JOHNSON SR ALLAN A"
+        },
+        {
+            "activity": "STATEMENT FILED",
+            "activity_date": "2018-11-16",
+            "attorney": "PRO SE",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "JOHNSON SR ALLAN"
+        }
+    ],
+    "case_number": "",
+    "case_type": "PB",
+    "date_filed": "",
+    "defendant": "",
+    "division": "",
+    "estate_of": "",
+    "filing_date": "2018-01-02"
+}

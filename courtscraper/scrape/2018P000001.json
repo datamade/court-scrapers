@@ -1,0 +1,178 @@
+{
+    "attorney": "",
+    "calendar": "07",
+    "case_activity": [
+        {
+            "activity": "PET. FOR PROBATE OF DECEDENT'S EST. - INTESTATE, INDEP. ADMIN.",
+            "activity_date": "2018-01-02",
+            "attorney": "PAUL A SMOLINSKI LTD.",
+            "court_date": "",
+            "court_fee": "$453.00",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "KUT GERTRUDE"
+        },
+        {
+            "activity": "EXHIBITS FILED",
+            "activity_date": "2018-01-02",
+            "attorney": "PAUL A SMOLINSKI LTD.",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "KUT GERTRUDE"
+        },
+        {
+            "activity": "CASE SET ON CASE MANAGEMENT CALL (DATE)",
+            "activity_date": "2018-01-02",
+            "attorney": "PAUL A SMOLINSKI LTD.",
+            "court_date": "01/16/2018",
+            "court_fee": "",
+            "court_room": "1807",
+            "court_time": "1000",
+            "judge": "",
+            "participant": "KUT GERTRUDE"
+        },
+        {
+            "activity": "AFFIDAVIT OF HEIRSHIP FILED",
+            "activity_date": "2018-01-16",
+            "attorney": "CHILDRESS & ZDEB LTD",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "KUT GERTRUDE"
+        },
+        {
+            "activity": "WAIVER OF NOTICE FILED",
+            "activity_date": "2018-01-16",
+            "attorney": "CHILDRESS & ZDEB LTD",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "KUT GERTRUDE"
+        },
+        {
+            "activity": "DESIGNATION OF RESIDENT AGENT",
+            "activity_date": "2018-01-16",
+            "attorney": "CHILDRESS & ZDEB LTD",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "KUT GERTRUDE"
+        },
+        {
+            "activity": "ORDER DECLARING HEIRSHIP - ALLOWED",
+            "activity_date": "2018-01-16",
+            "attorney": "",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "MALONE, DANIEL B.",
+            "participant": "KUT GERTRUDE"
+        },
+        {
+            "activity": "BOND OF REPRESENTATIVE APPROVED SURETY - ALLOWED",
+            "activity_date": "2018-01-16",
+            "attorney": "",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "MALONE, DANIEL B.",
+            "participant": "KUT GERTRUDE"
+        },
+        {
+            "activity": "LETTERS OF OFFICE AS INDEPENDENT ADMINISTRATOR ISSUED - ALLOWED",
+            "activity_date": "2018-01-16",
+            "attorney": "",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "MALONE, DANIEL B.",
+            "participant": "KUT GERTRUDE"
+        },
+        {
+            "activity": "ORDER TO FILE FINAL REPORT WITHIN 14 MONTHS - ALLOWED",
+            "activity_date": "2018-01-16",
+            "attorney": "",
+            "court_date": "03/26/2019",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "1000",
+            "judge": "MALONE, DANIEL B.",
+            "participant": "KUT GERTRUDE"
+        },
+        {
+            "activity": "CERTIFICATE OF PUBLICATION FILED",
+            "activity_date": "2018-02-20",
+            "attorney": "PAUL A SMOLINSKI LTD.",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "KUT GERTRUDE"
+        },
+        {
+            "activity": "ORDER OF DISCHARGE - INDEPENDENT ADMIN - ESTATE CLOSED - CONTINUED",
+            "activity_date": "2019-03-26",
+            "attorney": "",
+            "court_date": "04/26/2019",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "1000",
+            "judge": "MALONE, DANIEL B.",
+            "participant": "KUT GERTRUDE"
+        },
+        {
+            "activity": "WAIVER OF NOTICE FILED",
+            "activity_date": "2019-04-08",
+            "attorney": "PAUL A SMOLINSKI LTD.",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "KUT GERTRUDE"
+        },
+        {
+            "activity": "RECEIPT AND APPROVAL ON CLOSING OF INDEPENDENT ADMINISTRATION",
+            "activity_date": "2019-04-08",
+            "attorney": "PAUL A SMOLINSKI LTD.",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "KUT GERTRUDE"
+        },
+        {
+            "activity": "FINAL REPORT OF INDEPENDENT REPRESENTATIVE",
+            "activity_date": "2019-04-08",
+            "attorney": "PAUL A SMOLINSKI LTD.",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "KUT GERTRUDE"
+        }
+    ],
+    "case_number": "",
+    "case_type": "PB",
+    "date_filed": "",
+    "defendant": "KUT KYLE W",
+    "division": "",
+    "estate_of": "",
+    "filing_date": "2018-01-02"
+}

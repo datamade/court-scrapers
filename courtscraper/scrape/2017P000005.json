@@ -1,0 +1,200 @@
+{
+    "attorney": "",
+    "calendar": "09",
+    "case_activity": [
+        {
+            "activity": "PET. FOR GUARDIANSHIP OF MINOR'S PERSON",
+            "activity_date": "2017-01-03",
+            "attorney": "PRO SE",
+            "court_date": "",
+            "court_fee": "$168.00",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "BROWN MESSIAH J"
+        },
+        {
+            "activity": "HEARING DATE SET (DATE, TIME)",
+            "activity_date": "2017-01-03",
+            "attorney": "PRO SE",
+            "court_date": "02/16/2017",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "1000",
+            "judge": "",
+            "participant": "BROWN MESSIAH"
+        },
+        {
+            "activity": "AFFIDAVIT FOR SERVICE BY PUBLICATION",
+            "activity_date": "2017-01-03",
+            "attorney": "PRO SE",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "BROWN MESSIAH"
+        },
+        {
+            "activity": "EXHIBITS FILED",
+            "activity_date": "2017-01-03",
+            "attorney": "PRO SE",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "BROWN MESSIAH J"
+        },
+        {
+            "activity": "MINOR INVOLVED IS NOT OVER THE AGE OF 14 YEARS",
+            "activity_date": "2017-01-03",
+            "attorney": "PRO SE",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "BROWN MESSIAH J"
+        },
+        {
+            "activity": "NON-PARENT FILING",
+            "activity_date": "2017-01-03",
+            "attorney": "PRO SE",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "BROWN MESSIAH J"
+        },
+        {
+            "activity": "APPLICATION TO DEFEND OR SUE AS A POOR PERSON",
+            "activity_date": "2017-01-03",
+            "attorney": "PRO SE",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "BROWN MESSIAH J"
+        },
+        {
+            "activity": "ORDER GRANTING RIGHT TO DEFEND OR SUE AS A POOR PERSON - ALLOWED",
+            "activity_date": "2017-01-03",
+            "attorney": "",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "MACCARTHY, AICHA",
+            "participant": "BROWN MESSIAH J"
+        },
+        {
+            "activity": "CASE SET ON CASE MANAGEMENT CALL (DATE)",
+            "activity_date": "2017-01-03",
+            "attorney": "PRO SE",
+            "court_date": "01/17/2017",
+            "court_fee": "",
+            "court_room": "1806",
+            "court_time": "1000",
+            "judge": "",
+            "participant": "BROWN MESSIAH J"
+        },
+        {
+            "activity": "STRIKE FROM COURT CALL - ALLOWED",
+            "activity_date": "2017-01-17",
+            "attorney": "",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "SULLIVAN, SUSAN KENNEDY",
+            "participant": "BROWN MESSIAH J"
+        },
+        {
+            "activity": "CERTIFICATE OF PUBLICATION FILED",
+            "activity_date": "2017-01-23",
+            "attorney": "PRO SE",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "BROWN MESSIAH"
+        },
+        {
+            "activity": "COPY OF BIRTH CERTIFICATE FILED",
+            "activity_date": "2017-02-16",
+            "attorney": "PRO SE",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "BROWN MESSIAH"
+        },
+        {
+            "activity": "PARENTAL CONSENT FILED",
+            "activity_date": "2017-02-16",
+            "attorney": "PRO SE",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "BROWN MESSIAH"
+        },
+        {
+            "activity": "LETTERS OF OFFICE ISSUED",
+            "activity_date": "2017-02-16",
+            "attorney": "PRO SE",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "BROWN MESSIAH"
+        },
+        {
+            "activity": "GUARDIAN OF MINOR PERSON ONLY APPOINTED LETTERS OF OFFICE ISSUED - ALLOWED",
+            "activity_date": "2017-02-16",
+            "attorney": "",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "MACCARTHY, AICHA",
+            "participant": "BROWN MESSIAH J"
+        },
+        {
+            "activity": "BOND OF REPRESENTATIVE APPROVED - NO SURETY - ALLOWED",
+            "activity_date": "2017-02-16",
+            "attorney": "",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "MACCARTHY, AICHA",
+            "participant": "BROWN MESSIAH J"
+        },
+        {
+            "activity": "BOND APPROVED - ALLOWED",
+            "activity_date": "2017-02-16",
+            "attorney": "",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "MACCARTHY, AICHA",
+            "participant": "BROWN MESSIAH J"
+        }
+    ],
+    "case_number": "",
+    "case_type": "PB",
+    "date_filed": "",
+    "defendant": "GRANT DONNA L",
+    "division": "",
+    "estate_of": "",
+    "filing_date": "2017-01-03"
+}
