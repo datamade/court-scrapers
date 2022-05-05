@@ -1,0 +1,189 @@
+{
+    "attorney": "",
+    "calendar": "09",
+    "case_activity": [
+        {
+            "activity": "PET. FOR GUARDIANSHIP OF MINOR'S PERSON",
+            "activity_date": "2019-01-02",
+            "attorney": "PRO SE",
+            "court_date": "",
+            "court_fee": "$168.00",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "MURILLO MINA M"
+        },
+        {
+            "activity": "EXHIBITS FILED",
+            "activity_date": "2019-01-02",
+            "attorney": "PRO SE",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "MURILLO MINA M"
+        },
+        {
+            "activity": "MINOR INVOLVED IS NOT OVER THE AGE OF 14 YEARS",
+            "activity_date": "2019-01-02",
+            "attorney": "PRO SE",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "MURILLO MINA M"
+        },
+        {
+            "activity": "NON-PARENT FILING",
+            "activity_date": "2019-01-02",
+            "attorney": "PRO SE",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "MURILLO MINA M"
+        },
+        {
+            "activity": "APPLICATION TO DEFEND OR SUE AS A POOR PERSON",
+            "activity_date": "2019-01-02",
+            "attorney": "PRO SE",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "MURILLO MINA M"
+        },
+        {
+            "activity": "298 PETITION PLAINTIFF/PETITIONER - 100% GRANTED/ALLOWED",
+            "activity_date": "2019-01-02",
+            "attorney": "",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "OUTLAW, JESSE",
+            "participant": "MURILLO MINA M"
+        },
+        {
+            "activity": "CASE SET ON CASE MANAGEMENT CALL (DATE)",
+            "activity_date": "2019-01-02",
+            "attorney": "PRO SE",
+            "court_date": "02/04/2019",
+            "court_fee": "",
+            "court_room": "1806",
+            "court_time": "1000",
+            "judge": "",
+            "participant": "MURILLO MINA M"
+        },
+        {
+            "activity": "COPY OF BIRTH CERTIFICATE FILED",
+            "activity_date": "2019-02-04",
+            "attorney": "PRO SE",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "MURILLO MINA"
+        },
+        {
+            "activity": "PARENTAL CONSENT FILED",
+            "activity_date": "2019-02-04",
+            "attorney": "PRO SE",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "MURILLO MINA"
+        },
+        {
+            "activity": "PARENTAL CONSENT FILED",
+            "activity_date": "2019-02-04",
+            "attorney": "PRO SE",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "MURILLO MINA"
+        },
+        {
+            "activity": "LETTERS OF OFFICE ISSUED",
+            "activity_date": "2019-02-04",
+            "attorney": "PRO SE",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "MURILLO MINA"
+        },
+        {
+            "activity": "GUARDIAN OF MINOR PERSON ONLY APPOINTED LETTERS OF OFFICE ISSUED - ALLOWED",
+            "activity_date": "2019-02-04",
+            "attorney": "",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "GALLAGHER, CAROLYN J.",
+            "participant": "MURILLO MINA M"
+        },
+        {
+            "activity": "BOND OF REPRESENTATIVE APPROVED - NO SURETY - ALLOWED",
+            "activity_date": "2019-02-04",
+            "attorney": "",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "GALLAGHER, CAROLYN J.",
+            "participant": "MURILLO MINA M"
+        },
+        {
+            "activity": "BOND APPROVED - ALLOWED",
+            "activity_date": "2019-02-04",
+            "attorney": "",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "GALLAGHER, CAROLYN J.",
+            "participant": "MURILLO MINA M"
+        },
+        {
+            "activity": "LETTERS OF OFFICE TO ISSUE - ALLOWED",
+            "activity_date": "2019-02-04",
+            "attorney": "",
+            "court_date": "",
+            "court_fee": "",
+            "court_room": "",
+            "court_time": "",
+            "judge": "GALLAGHER, CAROLYN J.",
+            "participant": "MURILLO MINA M"
+        },
+        {
+            "activity": "AMENDMENT TO PETITION FILED",
+            "activity_date": "2019-04-24",
+            "attorney": "PRO SE",
+            "court_date": "",
+            "court_fee": "$611.75",
+            "court_room": "",
+            "court_time": "",
+            "judge": "",
+            "participant": "MURILLO MINA M"
+        }
+    ],
+    "case_number": "",
+    "case_type": "PB",
+    "date_filed": "",
+    "defendant": "DELEON DIAZ CARISA",
+    "division": "",
+    "estate_of": "",
+    "filing_date": "2019-01-02"
+}
