@@ -20,6 +20,8 @@ class ProbateScraper(requests.Session):
 
         # searching by case number is the default; no need to change form type
         for i in range(first_case_number, final_case_number + 1):
+            if exists(f'./courtscraper/scrape/{year}{division_code}{i}.json'):
+                continue
             request_body = {
                 '__VIEWSTATE': viewstate,
                 '__VIEWSTATEGENERATOR': viewstategenerator,
