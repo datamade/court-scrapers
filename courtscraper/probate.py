@@ -11,7 +11,7 @@ class ProbateScraper(requests.Session):
         return ''
 
     def scrape(self, url, year='2019', division_code='P', first_case_number=1, final_case_number=50):
-        response = requests.get(self.url).text
+        response = requests.get(url).text
 
         tree = lxml.html.fromstring(response)
         viewstate = tree.xpath("//input[@id='__VIEWSTATE']")[0].value
@@ -30,7 +30,7 @@ class ProbateScraper(requests.Session):
                 'ctl00$MainContent$txtCaseNumber': str(i),
                 'ctl00$MainContent$btnSearch': 'Start New Search'
             }
-            search_response = requests.post(self.url, data=request_body).text
+            search_response = requests.post(url, data=request_body).text
 
             result_tree = lxml.html.fromstring(search_response)
 
