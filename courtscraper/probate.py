@@ -1,12 +1,18 @@
+from os.path import exists
+
 import json
 import lxml.html
 import requests
 
 class ProbateScraper(requests.Session):
-    def __init__(self, url):
-        self.url = url
+    def __init__(self):
 
-    def scrape(self, year):
+    def get_cell_value(self, cell):
+        if cell:
+            return cell[0].text or ''
+        return ''
+
+    def scrape(self, url, year='2019', division_code='P', first_case_number=1, final_case_number=10000):
         response = requests.get(self.url).text
 
         tree = lxml.html.fromstring(response)
@@ -15,14 +21,14 @@ class ProbateScraper(requests.Session):
         eventvalidation = tree.xpath("//input[@id='__EVENTVALIDATION']")[0].value
 
         # searching by case number is the default; no need to change form type
-        for i in range(1, 10):
+        for i in range(first_case_number, final_case_number + 1):
             request_body = {
                 '__VIEWSTATE': viewstate,
                 '__VIEWSTATEGENERATOR': viewstategenerator,
                 '__EVENTVALIDATION': eventvalidation,
                 'ctl00$MainContent$rblSearchType': 'CaseNumber',
                 'ctl00$MainContent$txtCaseYear': str(year),
-                'ctl00$MainContent$txtCaseCode': 'P',
+                'ctl00$MainContent$txtCaseCode': division_code,
                 'ctl00$MainContent$txtCaseNumber': str(i),
                 'ctl00$MainContent$btnSearch': 'Start New Search'
             }
@@ -45,46 +51,25 @@ class ProbateScraper(requests.Session):
             first_table = result_tree.xpath(".//table[@class='table table-striped']")[0]
 
             case_number_cell = first_table.xpath(".//span[@id='MainContent_lblCaseNumber']")
-            if case_number_cell:
-                case_number = case_number_cell[0].text or ''
-            else:
-                case_number = ''
+            case_number = self.get_cell_value(case_number_cell)
 
             calendar_cell = first_table.xpath(".//span[@id='MainContent_lblCalendar']")
-            if calendar_cell:
-                calendar = calendar_cell[0].text or ''
-            else:
-                calendar = ''
+            calendar = self.get_cell_value(calendar_cell)
 
             date_filed_cell = first_table.xpath(".//span[@id='MainContent_lblDateFiled']")
-            if date_filed_cell:
-                date_filed = date_filed_cell[0].text or ''
-            else:
-                date_filed = ''
+            date_filed = self.get_cell_value(date_filed_cell)
 
             division_cell = first_table.xpath(".//span[@id='MainContent_lblDivision']")
-            if division_cell:
-                division = division_cell[0].text or ''
-            else:
-                division = ''
+            division = self.get_cell_value(division_cell)
 
             filing_date_cell = first_table.xpath(".//span[@id='MainContent_lblFilingDate']")
-            if filing_date_cell:
-                filing_date = filing_date_cell[0].text or ''
-            else:
-                filing_date = ''
+            filing_date = self.get_cell_value(filing_date_cell)
 
             estate_of_cell = first_table.xpath(".//span[@id='MainContent_lblEstateOf']")
-            if estate_of_cell:
-                estate_of = estate_of_cell[0].text or ''
-            else:
-                estate_of = ''
+            estate_of = self.get_cell_value(estate_of_cell)
 
             case_type_cell = first_table.xpath(".//span[@id='MainContent_lblCaseType']")
-            if case_type_cell:
-                case_type = case_type_cell[0].text or ''
-            else:
-                case_type = ''
+            case_type = self.get_cell_value(case_type_cell)
 
             # Party information
             party_info_table = result_tree.xpath("//table[@id='MainContent_gdvPartyInformationDefendant']")
@@ -132,8 +117,13 @@ class ProbateScraper(requests.Session):
                 output.write(json.dumps(case_obj, sort_keys=True, indent=4))
 
 if __name__ == '__main__':
-    scraper = ProbateScraper('https://casesearch.cookcountyclerkofcourt.org/ProbateDocketSearch.aspx')
+    scraper = ProbateScraper()
     years = [2019, 2020, 2021]
+    url = 'https://casesearch.cookcountyclerkofcourt.org/ProbateDocketSearch.aspx'
     for year in years:
-        scraper.scrape(year)
-    # scraper.scrape(2016)
+        scraper.scrape(url,
+                       year=year)
+        scraper.scrape(url, year=year, division_code='W', first_case_number=70000,
+                       final_case_number=70500)
+        scraper.scrape(url, year=year, division_code='W', first_case_number=71000,
+                       final_case_number=71500)
