@@ -5,14 +5,12 @@ import lxml.html
 import requests
 
 class ProbateScraper(requests.Session):
-    def __init__(self):
-
     def get_cell_value(self, cell):
         if cell:
             return cell[0].text or ''
         return ''
 
-    def scrape(self, url, year='2019', division_code='P', first_case_number=1, final_case_number=10000):
+    def scrape(self, url, year='2019', division_code='P', first_case_number=1, final_case_number=50):
         response = requests.get(self.url).text
 
         tree = lxml.html.fromstring(response)
@@ -121,9 +119,8 @@ if __name__ == '__main__':
     years = [2019, 2020, 2021]
     url = 'https://casesearch.cookcountyclerkofcourt.org/ProbateDocketSearch.aspx'
     for year in years:
-        scraper.scrape(url,
-                       year=year)
+        scraper.scrape(url, year=year)
         scraper.scrape(url, year=year, division_code='W', first_case_number=70000,
-                       final_case_number=70500)
+                       final_case_number=70050)
         scraper.scrape(url, year=year, division_code='W', first_case_number=71000,
-                       final_case_number=71500)
+                       final_case_number=71050)
