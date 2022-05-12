@@ -70,7 +70,7 @@ class ProbateScraper(requests.Session):
                 'estate_of': estate_of[0].strip(),
                 'case_type': case_type[0].strip()}
 
-    def scrape(self, url, year='2021', division_code='P', first_case_number=1, final_case_number=1200):
+    def scrape(self, url, year='2021', division_code='P', first_case_number=1, final_case_number=15000):
         viewstate, viewstategenerator, eventvalidation = self.get_dotnet_context(url)
 
         # searching by case number is the default; no need to change form type
