@@ -21,7 +21,7 @@ class ProbateScraper(requests.Session):
         party_info_table = tree.xpath("//table[@id='MainContent_gdvPartyInformationDefendant']")
         if party_info_table:
             defendant = party_info_table[0].xpath("./tr/td/text()")[0].strip()
-            attorney = party_info_table[0].xpath("./tr/td.text()")[1]strip()
+            attorney = party_info_table[0].xpath("./tr/td.text()")[1].strip()
         else:
             defendant = ''
             attorney = ''
