@@ -26,9 +26,11 @@ class ProbateScraper(requests.Session):
             defendant = ''
             attorney = ''
 
-        return {'participant': participant.strip(),
-                'defendant': defendant.strip(),
-                'attorney': attorney.strip()}
+        return {
+            'participant': participant.strip(),
+            'defendant': defendant.strip(),
+            'attorney': attorney.strip()
+        }
 
     def get_docket_events(self, result_tree):
         case_activity_table = result_tree.xpath("//table[@id='MainContent_gdvCaseActivity']")[0]
@@ -62,13 +64,15 @@ class ProbateScraper(requests.Session):
         estate_of = first_table.xpath(".//span[@id='MainContent_lblEstateOf']/text()") or ['']
         case_type = first_table.xpath(".//span[@id='MainContent_lblCaseType']/text()") or ['']
 
-        return {'case_number': case_number[0].strip(),
-                'calendar': calendar[0].strip(),
-                'filing_date': filing_date[0].strip(),
-                'division': division[0].strip(),
-                'date_filed': date_filed[0].strip(),
-                'estate_of': estate_of[0].strip(),
-                'case_type': case_type[0].strip()}
+        return {
+            'case_number': case_number[0].strip(),
+            'calendar': calendar[0].strip(),
+            'filing_date': filing_date[0].strip(),
+            'division': division[0].strip(),
+            'date_filed': date_filed[0].strip(),
+            'estate_of': estate_of[0].strip(),
+            'case_type': case_type[0].strip()
+        }
 
     def scrape(self, url, year='2021', division_code='P', first_case_number=1, final_case_number=15000):
         viewstate, viewstategenerator, eventvalidation = self.get_dotnet_context(url)
