@@ -31,7 +31,7 @@ before_script:
 
 artifact_download:
   script:
-    - scrips/download_artifacts.sh
+    - scripts/download_artifacts.sh
     # - "curl --location --output artifacts.zip --header 'JOB-TOKEN: $CI_JOB_TOKEN' https://gitlab.example.com/api/v4/projects/court-scraper/jobs/2455376584/artifacts"
     # - unzip artifacts.zip -j
     # - cat artifact_1.txt
