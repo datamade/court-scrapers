@@ -33,3 +33,8 @@ before_script:
 artifact_download:
   script:
     - scripts/download_artifacts.sh
+  needs:
+    - project: court-transparency-project/court-scrapers
+      job: job1
+      ref: demo-pipeline
+      artifacts: true
