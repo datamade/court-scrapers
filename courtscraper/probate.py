@@ -73,8 +73,61 @@ class ProbateScraper(requests.Session):
             'case_type': case_type.strip()
         }
 
+    def get_parties_from_search_results(self, html_tree):
+        # case_data = [
+                # some_case_number: {
+                #     'case_number': some_case_number,
+                #     'filing_date': some_filing_date,
+                #     'claimants': [list_of_claimants]
+                # }
+            # ]
+            # next, get the table and iterate through the rows to find all rows referring to
+            # the same case number
+            # we can use this to add a "filing_date," which is often blank on the case detail page,
+            # in addition to adding all names in the `Claimant, Minor or Representative` column.
+            # If this case number is the last on a page (there are 10 rows per page of results),
+            # the above data obj will allow us to easily avoid duplicates of cases if a case
+            # has multiple rows that are broken up by a page of results.
+
+            # finally, also return the following info to get the next page of results:
+            # next_request_body = {
+                # __EVENTTARGET: ctl00$MainContent$grdRecords
+                # __EVENTARGUMENT: Page$6
+                # __VIEWSTATE: [from current html_tree]
+                # __VIEWSTATEGENERATOR: [from current html_tree]
+                # __EVENTVALIDATION: [from current html_tree]
+            # }
+
+            # return case_data, next_request_body
+
+    def get_search_results(self, url, year='2021'):
+        # for weekday in year:
+            # first, send post request to url using:
+            # request_body = {
+                # '__VIEWSTATE': viewstate,
+                # '__VIEWSTATEGENERATOR': viewstategenerator,
+                # '__EVENTVALIDATION': eventvalidation,
+                # ctl00$MainContent$rblSearchType: FilingDate
+                # ctl00$MainContent$dtTxt: 8/3/2021 (date as string)
+                # ctl00$MainContent$btnSearch: Start New Search
+            # }
+
+            # case_data, next_request_body = self.get_parties_from_search_results(html_tree)
+
+            # TODO: how to address pagination?
+
+            # I would return list(case_data.values())
+        pass
+
     def scrape(self, url, year='2021', division_code='P', first_case_number=1, final_case_number=15000):
         viewstate, viewstategenerator, eventvalidation = self.get_dotnet_context(url)
+
+        # cases = self.get_search_results(url, year=year)
+
+        # we will likely have to get new `viewstate`, `viewstategenerator`, and `eventvalidation` values
+        # in order to search by case number
+
+        # loop over cases instead incrementally over all possible case numbers
 
         # searching by case number is the default; no need to change form type
         for i in range(first_case_number, final_case_number + 1):
@@ -88,6 +141,8 @@ class ProbateScraper(requests.Session):
                 'ctl00$MainContent$txtCaseNumber': str(i),
                 'ctl00$MainContent$btnSearch': 'Start New Search'
             }
+
+
             search_response = requests.post(url, data=request_body).text
 
             result_tree = lxml.html.fromstring(search_response)
