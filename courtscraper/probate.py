@@ -20,8 +20,7 @@ class ProbateScraper(requests.Session):
 
         party_info_table = tree.xpath("//table[@id='MainContent_gdvPartyInformationDefendant']")
         if party_info_table:
-            defendant = party_info_table[0].xpath("./tr/td/text()")[0].strip()
-            attorney = party_info_table[0].xpath("./tr/td/text()")[1].strip()
+            defendant, attorney = party_info_table[0].xpath("./tr/td/text()")
         else:
             defendant = ''
             attorney = ''
@@ -54,24 +53,24 @@ class ProbateScraper(requests.Session):
         return case_activity
 
     def get_case_info(self, result_tree):
-        first_table = result_tree.xpath(".//table[@class='table table-striped']")[0]
+        first_table, *_ = result_tree.xpath(".//table[@class='table table-striped']")[0]
 
-        case_number = first_table.xpath(".//span[@id='MainContent_lblCaseNumber']/text()") or ['']
-        calendar = first_table.xpath(".//span[@id='MainContent_lblCalendar']/text()") or ['']
-        date_filed = first_table.xpath(".//span[@id='MainContent_lblDateFiled']/text()") or ['']
-        division = first_table.xpath(".//span[@id='MainContent_lblDivision']/text()") or ['']
-        filing_date = first_table.xpath(".//span[@id='MainContent_lblFilingDate']/text()") or ['']
-        estate_of = first_table.xpath(".//span[@id='MainContent_lblEstateOf']/text()") or ['']
-        case_type = first_table.xpath(".//span[@id='MainContent_lblCaseType']/text()") or ['']
+        case_number, = first_table.xpath(".//span[@id='MainContent_lblCaseNumber']/text()") or ['']
+        calendar, = first_table.xpath(".//span[@id='MainContent_lblCalendar']/text()") or ['']
+        date_filed, = first_table.xpath(".//span[@id='MainContent_lblDateFiled']/text()") or ['']
+        division, = first_table.xpath(".//span[@id='MainContent_lblDivision']/text()") or ['']
+        filing_date, = first_table.xpath(".//span[@id='MainContent_lblFilingDate']/text()") or ['']
+        estate_of, = first_table.xpath(".//span[@id='MainContent_lblEstateOf']/text()") or ['']
+        case_type, = first_table.xpath(".//span[@id='MainContent_lblCaseType']/text()") or ['']
 
         return {
-            'case_number': case_number[0].strip(),
-            'calendar': calendar[0].strip(),
-            'filing_date': filing_date[0].strip(),
-            'division': division[0].strip(),
-            'date_filed': date_filed[0].strip(),
-            'estate_of': estate_of[0].strip(),
-            'case_type': case_type[0].strip()
+            'case_number': case_number.strip(),
+            'calendar': calendar.strip(),
+            'filing_date': filing_date.strip(),
+            'division': division.strip(),
+            'date_filed': date_filed.strip(),
+            'estate_of': estate_of.strip(),
+            'case_type': case_type.strip()
         }
 
     def scrape(self, url, year='2021', division_code='P', first_case_number=1, final_case_number=15000):
