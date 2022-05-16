@@ -24,7 +24,7 @@ cache:
     - venv/
 
 before_script:
-  - apt-get update && apt-get install jq
+  - apt-get update && apt-get -y --no-install-recommends install jq
   - python --version  # For debugging
   - pip install virtualenv
   - virtualenv venv
