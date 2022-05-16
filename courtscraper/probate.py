@@ -99,6 +99,7 @@ class ProbateScraper(requests.Session):
             # }
 
             # return case_data, next_request_body
+        pass
 
     def get_search_results(self, url, year='2021'):
         # for weekday in year:
