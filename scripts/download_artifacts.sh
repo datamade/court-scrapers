@@ -10,6 +10,7 @@ fetch_artifacts() {
 }
 
 job_id=$(get_job_id)
+get_job_id
 fetch_artifacts $job_id
 unzip -j artifacts.zip
 cat artifacts_1.txt
