@@ -1,4 +1,5 @@
 from os.path import exists
+import datetime
 
 import json
 import lxml.html
@@ -89,23 +90,26 @@ class ProbateScraper(requests.Session):
         pass
 
     def iterate_search_results(self, date, current_page_number=1):
-        # first, send post request to url using:
-        # request_body = {
-            # '__VIEWSTATE': viewstate,
-            # '__VIEWSTATEGENERATOR': viewstategenerator,
-            # '__EVENTVALIDATION': eventvalidation,
-            # ctl00$MainContent$rblSearchType: FilingDate
-            # ctl00$MainContent$dtTxt: date (date as string, e.g. '8/3/2021')
-            # ctl00$MainContent$btnSearch: Start New Search
-        # }
-        # result_page = get(url, ...)
+        viewstate, viewstategenerator, eventvalidation = self.get_dotnet_context(url)
+        request_body = {
+            '__VIEWSTATE': viewstate,
+            '__VIEWSTATEGENERATOR': viewstategenerator,
+            '__EVENTVALIDATION': eventvalidation,
+            'ctl00$MainContent$rblSearchType': 'FilingDate',
+            'ctl00$MainContent$dtTxt': date,
+            'ctl00$MainContent$btnSearch': 'Start New Search'
+        }
+        result_page = requests.post(url, data=request_body).text
+        result_tree = lxml.html.fromstring(result_page)
+        breakpoint()
 
-        # case_data = {
-            # 'case_number': some_case_number,
-            # 'claimants': a_string
-        # }
+        case_data = {
+            'case_number': '',
+            'claimants': ''
+        }
 
         # parse out rows from table in a loop && yield data using template ^^
+        results_table = result_tree.xpath("//table[@id='MainContent_grdRecords']")
 
         # we can use this to add a "filing_date," which is often blank on the case detail page,
         # in addition to adding all names in the `Claimant, Minor or Representative` column.
@@ -119,22 +123,30 @@ class ProbateScraper(requests.Session):
         pass
 
     def get_search_results(self, url, year='2021'):
-        # for weekday in year:
-            # case_data = {
-            #     'case_number': None,
-            #     'filing_date': date,
-            #     'claimants': [],
-            # }
+        year_start = datetime.date(year, 1, 2)
+        year_end = datetime.date(year, 12, 30)
+        year_range = year_end - year_start
+        weekdays = [
+            year_start + datetime.timedelta(days=day)
+            for day in range(year_range.days)
+            if (year_start + datetime.timedelta(days=day)).weekday() < 5
+        ]
+        for day in weekdays:
+            date_str = day.strftime('%m/%d/%Y')
+            case_data = {
+                'case_number': None,
+                'filing_date': date_str,
+                'claimants': [],
+            }
 
-            # for result in self.iterate_search_results(date):
-            #   check if file with this case # already exists; if so, update claimants
-            #   if not, yield case_data
+            for result in self.iterate_search_results(date_str):
+                # check if file with this case # already exists; if so, update claimants
+                # if not, yield case_data
+                continue
         pass
 
-    def scrape(self, url, year='2021', division_code='P', first_case_number=1, final_case_number=15000):
-        viewstate, viewstategenerator, eventvalidation = self.get_dotnet_context(url)
-
-        # cases = self.get_search_results(url, year=year)
+    def scrape(self, url, year='2021'):
+        cases = self.get_search_results(url, year=year)
 
         # we will likely have to get new `viewstate`, `viewstategenerator`, and `eventvalidation` values
         # in order to search by case number
@@ -152,7 +164,6 @@ class ProbateScraper(requests.Session):
                 'ctl00$MainContent$txtCaseNumber': str(i),
                 'ctl00$MainContent$btnSearch': 'Start New Search'
             }
-
 
             search_response = requests.post(url, data=request_body).text
 
