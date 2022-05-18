@@ -9,7 +9,7 @@ fetch_artifacts() {
   curl --output artifacts.zip --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" https://gitlab.com/api/v4/projects/36119029/jobs/$id/artifacts
 }
 
-curl --globoff --header 'PRIVATE_TOKEN: $COURT_SCRAPERS_TOKEN' https://gitlab.com/api/v4/projects/36119029/jobs
+curl --globoff --header 'JOB-TOKEN: $CI_JOB_TOKEN' https://gitlab.com/api/v4/projects/36119029/jobs
 # job_id=$(get_job_id)
 # fetch_artifacts $job_id
 # unzip -j artifacts.zip
