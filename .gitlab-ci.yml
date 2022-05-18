@@ -29,12 +29,8 @@ before_script:
   - pip install virtualenv
   - virtualenv venv
   - source venv/bin/activate
+  - pip install -r requirements.txt
 
 artifact_download:
   script:
     - scripts/download_artifacts.sh
-  needs:
-    - project: court-transparency-project/court-scrapers
-      job: job1
-      ref: demo-pipeline
-      artifacts: true
