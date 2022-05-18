@@ -1,9 +1,11 @@
 from os.path import exists
 import datetime
-
+import re
 import json
+
 import lxml.html
 import requests
+import mechanize
 
 class ProbateScraper(requests.Session):
     def get_dotnet_context(self, url):
@@ -89,19 +91,41 @@ class ProbateScraper(requests.Session):
         # else, return
         pass
 
-    def iterate_search_results(self, date, current_page_number=1):
+    def iterate_search_results(self, url, date, current_page_number=1):
+        # breakpoint()
+        # click 'Search by Filing Date'
         viewstate, viewstategenerator, eventvalidation = self.get_dotnet_context(url)
+        {'__EVENTTARGET': '',
+        '__EVENTARGUMENT': '',
+        '__VIEWSTATE': viewstate,
+        '__VIEWSTATEGENERATOR': viewstategenerator,
+        '__VIEWSTATEENCRYPTED': '',
+        '__EVENTVALIDATION': eventvalidation,
+        'ctl00$MainContent$btnSearchAgain': 'Start New Search'}
+
+        # select date from datepicker
+
+
+
+
+
+
+
         request_body = {
+            'ctl00$MainContent$rblSearchType': 'FilingDate',
+            'ctl00$MainContent$dtTxt': date,
+            'ctl00$MainContent$btnSearch': 'Start New Search',
+            '__EVENTTARGET': '',
+            '__EVENTARGUMENT': '',
+            '__LASTFOCUS': '',
             '__VIEWSTATE': viewstate,
             '__VIEWSTATEGENERATOR': viewstategenerator,
             '__EVENTVALIDATION': eventvalidation,
-            'ctl00$MainContent$rblSearchType': 'FilingDate',
-            'ctl00$MainContent$dtTxt': date,
-            'ctl00$MainContent$btnSearch': 'Start New Search'
+            '__VIEWSTATEENCRYPTED': '',
         }
         result_page = requests.post(url, data=request_body).text
         result_tree = lxml.html.fromstring(result_page)
-        breakpoint()
+        # breakpoint()
 
         case_data = {
             'case_number': '',
@@ -110,6 +134,7 @@ class ProbateScraper(requests.Session):
 
         # parse out rows from table in a loop && yield data using template ^^
         results_table = result_tree.xpath("//table[@id='MainContent_grdRecords']")
+        # breakpoint()
 
         # we can use this to add a "filing_date," which is often blank on the case detail page,
         # in addition to adding all names in the `Claimant, Minor or Representative` column.
@@ -131,7 +156,23 @@ class ProbateScraper(requests.Session):
             for day in range(year_range.days)
             if (year_start + datetime.timedelta(days=day)).weekday() < 5
         ]
+
+        br = mechanize.Browser()
+        br.addheaders = [('User-agent', 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9 Firefox/3.0.1')]
+        br.set_handle_robots(False)
         for day in weekdays:
+            response = br.open(url)
+            breakpoint()
+            br.select_form(id='ctl01')
+            br.set_all_readonly(False)
+            br['__EVENTTARGET'] = 'ctl00$MainContent$rblSearchType$2'
+            br.submit()
+
+            # TODO: get the eventtarget value from the radio button programmatically
+            # below line will give us a handle on radio button
+            # radio = br.form.find_control(type='radio').get(id="MainContent_rblSearchType_2")
+
+            # javascript:setTimeout('__doPostBack(\'ctl00$MainContent$rblSearchType$2\',\'\')', 0)
             date_str = day.strftime('%m/%d/%Y')
             case_data = {
                 'case_number': None,
@@ -139,7 +180,7 @@ class ProbateScraper(requests.Session):
                 'claimants': [],
             }
 
-            for result in self.iterate_search_results(date_str):
+            for result in self.iterate_search_results(url, date_str):
                 # check if file with this case # already exists; if so, update claimants
                 # if not, yield case_data
                 continue
