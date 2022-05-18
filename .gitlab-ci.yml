@@ -33,4 +33,4 @@ before_script:
 
 artifact_download:
   script:
-    - scripts/download_artifacts.sh
+    - scripts/download_artifacts.py
