@@ -162,18 +162,36 @@ class ProbateScraper(requests.Session):
         br.set_handle_robots(False)
         for day in weekdays:
             response = br.open(url)
-            breakpoint()
             br.select_form(id='ctl01')
             br.set_all_readonly(False)
+
+            # Select the filing date radio button
+            br.find_control(name='ctl00$MainContent$rblSearchType')\
+              .get(id='MainContent_rblSearchType_2').selected = True
+
+            # Manually update event target, spoofing JavaScript callback
             br['__EVENTTARGET'] = 'ctl00$MainContent$rblSearchType$2'
+
+            # Remove unneeded values
+            br.form.clear('ctl00$MainContent$txtCaseYear')
+            br.form.clear('ctl00$MainContent$txtCaseNumber')
+            br.form.clear('ctl00$MainContent$btnSearch')
+
+            # Submit the form
             br.submit()
 
-            # TODO: get the eventtarget value from the radio button programmatically
-            # below line will give us a handle on radio button
-            # radio = br.form.find_control(type='radio').get(id="MainContent_rblSearchType_2")
+            br.select_form(id='ctl01')
+            br.set_all_readonly(False)
 
-            # javascript:setTimeout('__doPostBack(\'ctl00$MainContent$rblSearchType$2\',\'\')', 0)
             date_str = day.strftime('%m/%d/%Y')
+
+            # Specify the date to search
+            br['ctl00$MainContent$dtTxt'] = date_str
+
+            response = br.submit()
+
+            print(response.read().decode('utf-8'))
+
             case_data = {
                 'case_number': None,
                 'filing_date': date_str,
