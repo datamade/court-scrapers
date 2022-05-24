@@ -91,61 +91,26 @@ class ProbateScraper(requests.Session):
         # else, return
         pass
 
-    def iterate_search_results(self, url, date, current_page_number=1):
-        # breakpoint()
-        # click 'Search by Filing Date'
-        viewstate, viewstategenerator, eventvalidation = self.get_dotnet_context(url)
-        {'__EVENTTARGET': '',
-        '__EVENTARGUMENT': '',
-        '__VIEWSTATE': viewstate,
-        '__VIEWSTATEGENERATOR': viewstategenerator,
-        '__VIEWSTATEENCRYPTED': '',
-        '__EVENTVALIDATION': eventvalidation,
-        'ctl00$MainContent$btnSearchAgain': 'Start New Search'}
-
-        # select date from datepicker
-
-
-
-
-
-
-
-        request_body = {
-            'ctl00$MainContent$rblSearchType': 'FilingDate',
-            'ctl00$MainContent$dtTxt': date,
-            'ctl00$MainContent$btnSearch': 'Start New Search',
-            '__EVENTTARGET': '',
-            '__EVENTARGUMENT': '',
-            '__LASTFOCUS': '',
-            '__VIEWSTATE': viewstate,
-            '__VIEWSTATEGENERATOR': viewstategenerator,
-            '__EVENTVALIDATION': eventvalidation,
-            '__VIEWSTATEENCRYPTED': '',
-        }
-        result_page = requests.post(url, data=request_body).text
-        result_tree = lxml.html.fromstring(result_page)
-        # breakpoint()
-
+    def iterate_search_results(self, url, result_table, current_page_number=1):
         case_data = {
             'case_number': '',
-            'claimants': ''
+            'claimant': ''
         }
+        for result in result_table[1:]:
+            print("iterating over row in results table")
+            try:
+                case_number, estate, claimant, *_ = result.xpath("./td/text()")
+            except ValueError:
+                continue
+            case_data['case_number'] = case_number.strip()
+            case_data['claimant'] = claimant.strip()
+            yield case_data
 
-        # parse out rows from table in a loop && yield data using template ^^
-        results_table = result_tree.xpath("//table[@id='MainContent_grdRecords']")
-        # breakpoint()
-
-        # we can use this to add a "filing_date," which is often blank on the case detail page,
-        # in addition to adding all names in the `Claimant, Minor or Representative` column.
-        # If this case number is the last on a page (there are 10 rows per page of results),
-        # the above data obj will allow us to easily avoid duplicates of cases if a case
-        # has multiple rows that are broken up by a page of results.
+        print(f"finished iterating over page {current_page_number}")
 
         # if current page number != last cell in fancy table in table pagination thing
             # self.iterate_search_results(date, current_page_number + 1)
             # [handle combination in get_search_results]
-        pass
 
     def get_search_results(self, url, year='2021'):
         year_start = datetime.date(year, 1, 2)
@@ -161,6 +126,7 @@ class ProbateScraper(requests.Session):
         br.addheaders = [('User-agent', 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9 Firefox/3.0.1')]
         br.set_handle_robots(False)
         for day in weekdays:
+            print(f"here's {day}")
             response = br.open(url)
             br.select_form(id='ctl01')
             br.set_all_readonly(False)
@@ -179,48 +145,55 @@ class ProbateScraper(requests.Session):
 
             # Submit the form
             br.submit()
+            print("getting the date search form")
 
             br.select_form(id='ctl01')
             br.set_all_readonly(False)
 
-            date_str = day.strftime('%m/%d/%Y')
-
             # Specify the date to search
+            date_str = day.strftime('%m/%d/%Y')
             br['ctl00$MainContent$dtTxt'] = date_str
 
-            response = br.submit()
+            response = br.submit().read().decode('utf-8')
+            result_tree = lxml.html.fromstring(response)
+            print("successfully got first page of results")
 
-            print(response.read().decode('utf-8'))
+            try:
+                result_table, = result_tree.xpath(".//table[@id='MainContent_grdRecords']")
+            except ValueError:
+                continue
 
             case_data = {
-                'case_number': None,
+                'case_number': '',
                 'filing_date': date_str,
                 'claimants': [],
             }
 
-            for result in self.iterate_search_results(url, date_str):
-                # check if file with this case # already exists; if so, update claimants
-                # if not, yield case_data
-                continue
-        pass
+            for result in self.iterate_search_results(url, result_table):
+                if not case_data['case_number']:
+                    case_data['case_number'] = result['case_number']
+
+                if case_data['case_number'] == result['case_number']:
+                    case_data['claimants'].append(result['claimant'])
+                elif case_data['case_number'] != result['case_number']:
+                    yield case_data
+
+                    case_data['case_number'] = result['case_number']
+                    case_data['claimants'] = [result['claimant']]
 
     def scrape(self, url, year='2021'):
-        cases = self.get_search_results(url, year=year)
+        viewstate, viewstategenerator, eventvalidation = self.get_dotnet_context(url)
 
-        # we will likely have to get new `viewstate`, `viewstategenerator`, and `eventvalidation` values
-        # in order to search by case number
-
-        # loop over cases instead of incrementally over all possible case numbers
-        # searching by case number is the default; no need to change form type
-        for i in range(first_case_number, final_case_number + 1):
+        for result in self.get_search_results(url, year=year):
+            print(f"getting detail page for {result['case_number']}")
             request_body = {
                 '__VIEWSTATE': viewstate,
                 '__VIEWSTATEGENERATOR': viewstategenerator,
                 '__EVENTVALIDATION': eventvalidation,
                 'ctl00$MainContent$rblSearchType': 'CaseNumber',
-                'ctl00$MainContent$txtCaseYear': str(year),
-                'ctl00$MainContent$txtCaseCode': division_code,
-                'ctl00$MainContent$txtCaseNumber': str(i),
+                'ctl00$MainContent$txtCaseYear': result['case_number'][:4],
+                'ctl00$MainContent$txtCaseCode': result['case_number'][4],
+                'ctl00$MainContent$txtCaseNumber': result['case_number'][5:],
                 'ctl00$MainContent$btnSearch': 'Start New Search'
             }
 
@@ -231,19 +204,21 @@ class ProbateScraper(requests.Session):
             header, = result_tree.xpath("//span[@id='MainContent_lblDetailHeader']")
             header_case_number, = header.xpath(".//strong/text()")
             if 'No information found' in header_case_number:
-                continue
+                yield result['case_number'], result
+            else:
+                case_info = self.get_case_info(result_tree)
+                party_info = self.get_parties(result_tree)
+                events = self.get_docket_events(result_tree)
 
-            case_info = self.get_case_info(result_tree)
-            party_info = self.get_parties(result_tree)
-            events = self.get_docket_events(result_tree)
+                breakpoint()
 
-            case_obj = {
-                **case_info,
-                **party_info,
-                'events': events,
-            }
+                case_obj = {
+                    **case_info,
+                    **party_info,
+                    'events': events,
+                }
 
-            yield header_case_number, case_obj
+                yield header_case_number, case_obj
 
 
 if __name__ == '__main__':
