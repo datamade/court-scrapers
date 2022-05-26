@@ -100,7 +100,8 @@ class ProbateScraper(requests.Session):
         # check if this is the last page of results
         *_, last_page_text = result_table.xpath("./tr[@class='GridPager']//table//td//text()")
         current_page_text, = result_table.xpath("./tr[@class='GridPager']//span/text()")
-        last_page = True if last_page_text == current_page_text else False
+        last_page = last_page_text == current_page_text
+        # use `last_result` and `last_page` in `get_search_results` loop
 
         case_data = {
             'case_number': '',
@@ -182,6 +183,9 @@ class ProbateScraper(requests.Session):
             }
 
             for result, is_last_result, is_last_page in self.iterate_search_results(url, result_table):
+                # When `iterate_search_results` yields data about row `n`, this loop
+                # yields data about row `n - 1` once it establishes that the case number
+                # in row `n` is different than the case number in row `n - 1`.
                 if case_data['case_number'] == result['case_number']:
                     case_data['claimants'].append(result['claimant'])
 
@@ -193,6 +197,7 @@ class ProbateScraper(requests.Session):
                     case_data['estate_of'] = result['estate_of']
                     case_data['claimants'] = [result['claimant']]
 
+                # If last result on last page, don't expect another case_data obj
                 if is_last_result and is_last_page:
                     yield case_data
 
