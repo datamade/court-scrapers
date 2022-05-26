@@ -107,11 +107,7 @@ class ProbateScraper(requests.Session):
         }
         for result in result_table[1:-1]:
             last_result = result == result_table[-2]
-            try:
-                case_number, estate, claimant, *_ = result.xpath("./td/text()")
-            except ValueError:
-                breakpoint()
-                continue
+            case_number, estate, claimant, *_ = result.xpath("./td/text()")
             case_data['case_number'] = case_number.strip()
             case_data['estate_of'] = estate.strip()
             case_data['claimant'] = claimant.strip()
@@ -135,7 +131,7 @@ class ProbateScraper(requests.Session):
         br = mechanize.Browser()
         br.addheaders = [('User-agent', 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9 Firefox/3.0.1')]
         br.set_handle_robots(False)
-        for day in [weekdays[0]]:
+        for day in weekdays:
             response = br.open(url)
             br.select_form(id='ctl01')
             br.set_all_readonly(False)
@@ -198,7 +194,6 @@ class ProbateScraper(requests.Session):
         viewstate, viewstategenerator, eventvalidation = self.get_dotnet_context(url)
 
         for result in self.get_search_results(url, year=year):
-            print(f"getting detail page for {result['case_number']}")
             request_body = {
                 '__VIEWSTATE': viewstate,
                 '__VIEWSTATEGENERATOR': viewstategenerator,
@@ -235,7 +230,7 @@ class ProbateScraper(requests.Session):
 
 if __name__ == '__main__':
     scraper = ProbateScraper()
-    years = [2021]
+    years = [2021, 2022]
     url = 'https://casesearch.cookcountyclerkofcourt.org/ProbateDocketSearch.aspx'
     for year in years:
         for case_number, case_obj in scraper.scrape(url, year=year):
