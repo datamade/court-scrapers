@@ -92,11 +92,9 @@ class ProbateScraper(requests.Session):
         response = requests.post(url, data=next_request_body).text
         result_tree = lxml.html.fromstring(response)
         try:
-            results_table, = result_tree.xpath(".//table[@id='MainContent_grdRecords']")
+            return result_tree.xpath(".//table[@id='MainContent_grdRecords']")[0]
         except ValueError:
             return
-
-        return results_table
 
     def iterate_search_results(self, url, result_table, current_page_number=1):
         # check if this is the last page of results
@@ -109,6 +107,7 @@ class ProbateScraper(requests.Session):
             'estate_of': '',
             'claimant': ''
         }
+        # this slice omits column headers (first row), and pagination links (last row)
         for result in result_table[1:-1]:
             last_result = result == result_table[-2]
             case_number, estate, claimant, *_ = result.xpath("./td/text()")
@@ -121,6 +120,41 @@ class ProbateScraper(requests.Session):
             requested_page_number = current_page_number + 1
             next_table = self.get_next_request_body(url, result_table, requested_page_number)
             yield from self.iterate_search_results(url, next_table, current_page_number=requested_page_number)
+
+    def initialize_date_search(self, url, br):
+        response = br.open(url)
+        br.select_form(id='ctl01')
+        br.set_all_readonly(False)
+
+        # Select the filing date radio button
+        br.find_control(name='ctl00$MainContent$rblSearchType')\
+          .get(id='MainContent_rblSearchType_2').selected = True
+
+        # Manually update event target, spoofing JavaScript callback
+        br['__EVENTTARGET'] = 'ctl00$MainContent$rblSearchType$2'
+
+        # Remove unneeded values
+        br.form.clear('ctl00$MainContent$txtCaseYear')
+        br.form.clear('ctl00$MainContent$txtCaseNumber')
+        br.form.clear('ctl00$MainContent$btnSearch')
+
+        # Submit the form
+        br.submit()
+
+        br.select_form(id='ctl01')
+        br.set_all_readonly(False)
+
+        # Specify the date to search
+        date_str = day.strftime('%m/%d/%Y')
+        br['ctl00$MainContent$dtTxt'] = date_str
+
+        response = br.submit().read().decode('utf-8')
+        result_tree = lxml.html.fromstring(response)
+
+        try:
+            return result_tree.xpath(".//table[@id='MainContent_grdRecords']")[0]
+        except ValueError:
+            return
 
     def get_search_results(self, url, year='2021'):
         year_start = datetime.date(year, 1, 2)
@@ -136,38 +170,8 @@ class ProbateScraper(requests.Session):
         br.addheaders = [('User-agent', 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9 Firefox/3.0.1')]
         br.set_handle_robots(False)
         for day in weekdays:
-            response = br.open(url)
-            br.select_form(id='ctl01')
-            br.set_all_readonly(False)
-
-            # Select the filing date radio button
-            br.find_control(name='ctl00$MainContent$rblSearchType')\
-              .get(id='MainContent_rblSearchType_2').selected = True
-
-            # Manually update event target, spoofing JavaScript callback
-            br['__EVENTTARGET'] = 'ctl00$MainContent$rblSearchType$2'
-
-            # Remove unneeded values
-            br.form.clear('ctl00$MainContent$txtCaseYear')
-            br.form.clear('ctl00$MainContent$txtCaseNumber')
-            br.form.clear('ctl00$MainContent$btnSearch')
-
-            # Submit the form
-            br.submit()
-
-            br.select_form(id='ctl01')
-            br.set_all_readonly(False)
-
-            # Specify the date to search
-            date_str = day.strftime('%m/%d/%Y')
-            br['ctl00$MainContent$dtTxt'] = date_str
-
-            response = br.submit().read().decode('utf-8')
-            result_tree = lxml.html.fromstring(response)
-
-            try:
-                result_table, = result_tree.xpath(".//table[@id='MainContent_grdRecords']")
-            except ValueError:
+            result_table = self.initialize_date_search(url, br)
+            if not result_table:
                 continue
 
             case_data = {
@@ -177,16 +181,14 @@ class ProbateScraper(requests.Session):
                 'filing_date': date_str,
             }
 
-            for item in self.iterate_search_results(url, result_table):
-                result, is_last_result, is_last_page = item
-                if not case_data['case_number']:
-                    case_data['case_number'] = result['case_number']
-                    case_data['estate_of'] = result['estate_of']
-
+            for result, is_last_result, is_last_page in self.iterate_search_results(url, result_table):
                 if case_data['case_number'] == result['case_number']:
                     case_data['claimants'].append(result['claimant'])
+
                 elif case_data['case_number'] != result['case_number']:
-                    yield case_data
+                    if case_data['case_number']:  # Don't yield initial empty case data
+                        yield case_data
+
                     case_data['case_number'] = result['case_number']
                     case_data['estate_of'] = result['estate_of']
                     case_data['claimants'] = [result['claimant']]
@@ -198,14 +200,17 @@ class ProbateScraper(requests.Session):
         viewstate, viewstategenerator, eventvalidation = self.get_dotnet_context(url)
 
         for result in self.get_search_results(url, year=year):
+            case_year = result['case_number'][:4],
+            case_code = result['case_number'][4],
+            case_number = result['case_number'][5:]
             request_body = {
                 '__VIEWSTATE': viewstate,
                 '__VIEWSTATEGENERATOR': viewstategenerator,
                 '__EVENTVALIDATION': eventvalidation,
                 'ctl00$MainContent$rblSearchType': 'CaseNumber',
-                'ctl00$MainContent$txtCaseYear': result['case_number'][:4],
-                'ctl00$MainContent$txtCaseCode': result['case_number'][4],
-                'ctl00$MainContent$txtCaseNumber': result['case_number'][5:],
+                'ctl00$MainContent$txtCaseYear': case_year,
+                'ctl00$MainContent$txtCaseCode': case_code,
+                'ctl00$MainContent$txtCaseNumber': case_number,
                 'ctl00$MainContent$btnSearch': 'Start New Search'
             }
 
