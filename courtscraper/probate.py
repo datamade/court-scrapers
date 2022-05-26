@@ -91,14 +91,18 @@ class ProbateScraper(requests.Session):
 
         response = requests.post(url, data=next_request_body).text
         result_tree = lxml.html.fromstring(response)
-        results_table, = result_tree.xpath(".//table[@id='MainContent_grdRecords']")
+        try:
+            results_table, = result_tree.xpath(".//table[@id='MainContent_grdRecords']")
+        except ValueError:
+            return
 
         return results_table
 
     def iterate_search_results(self, url, result_table, current_page_number=1):
         # check if this is the last page of results
-        *_, last_page_link = result_table.xpath("./tr[@class='GridPager']//a/text()")
-        last_page = str(current_page_number) == last_page_link
+        *_, last_page_text = result_table.xpath("./tr[@class='GridPager']//table//td//text()")
+        current_page_text, = result_table.xpath("./tr[@class='GridPager']//span/text()")
+        last_page = True if last_page_text == current_page_text else False
 
         case_data = {
             'case_number': '',
@@ -237,3 +241,4 @@ if __name__ == '__main__':
             file_path = f'./courtscraper/scrape/{case_number}.json'
             with open(file_path, 'w+') as output:
                 output.write(json.dumps(case_obj, sort_keys=True, indent=4))
+            print(f"Successfully scraped {case_number}")
