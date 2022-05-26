@@ -81,8 +81,6 @@ class ProbateScraper(requests.Session):
         viewstategenerator = result_table.xpath("//input[@name='__VIEWSTATEGENERATOR']")[0].value
         eventvalidation = result_table.xpath("//input[@name='__EVENTVALIDATION']")[0].value
 
-        breakpoint()
-
         next_request_body = {
             '__EVENTTARGET': 'ctl00$MainContent$grdRecords',
             '__EVENTARGUMENT': f'Page${requested_page}',
@@ -93,7 +91,7 @@ class ProbateScraper(requests.Session):
 
         response = requests.post(url, data=next_request_body).text
         result_tree = lxml.html.fromstring(response)
-        results_table = result_tree.xpath(".//table[@id='MainContent_grdRecords']")
+        results_table, = result_tree.xpath(".//table[@id='MainContent_grdRecords']")
 
         return results_table
 
@@ -107,11 +105,12 @@ class ProbateScraper(requests.Session):
             'estate_of': '',
             'claimant': ''
         }
-        for result in [result_table[-2]]:
+        for result in result_table[1:-1]:
             last_result = result == result_table[-2]
             try:
                 case_number, estate, claimant, *_ = result.xpath("./td/text()")
             except ValueError:
+                breakpoint()
                 continue
             case_data['case_number'] = case_number.strip()
             case_data['estate_of'] = estate.strip()
@@ -119,11 +118,9 @@ class ProbateScraper(requests.Session):
             yield case_data, last_result, last_page
 
         if not last_page:
-            breakpoint()
             requested_page_number = current_page_number + 1
             next_table = self.get_next_request_body(url, result_table, requested_page_number)
-            self.iterate_search_results(url, next_table, current_page_number=requested_page_number)
-        print(f"finished iterating over page {current_page_number}")
+            yield from self.iterate_search_results(url, next_table, current_page_number=requested_page_number)
 
     def get_search_results(self, url, year='2021'):
         year_start = datetime.date(year, 1, 2)
@@ -139,7 +136,6 @@ class ProbateScraper(requests.Session):
         br.addheaders = [('User-agent', 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9 Firefox/3.0.1')]
         br.set_handle_robots(False)
         for day in [weekdays[0]]:
-            print(f"here's {day}")
             response = br.open(url)
             br.select_form(id='ctl01')
             br.set_all_readonly(False)
@@ -158,7 +154,6 @@ class ProbateScraper(requests.Session):
 
             # Submit the form
             br.submit()
-            print("getting the date search form")
 
             br.select_form(id='ctl01')
             br.set_all_readonly(False)
@@ -169,7 +164,6 @@ class ProbateScraper(requests.Session):
 
             response = br.submit().read().decode('utf-8')
             result_tree = lxml.html.fromstring(response)
-            print("successfully got first page of results")
 
             try:
                 result_table, = result_tree.xpath(".//table[@id='MainContent_grdRecords']")
@@ -229,11 +223,10 @@ class ProbateScraper(requests.Session):
                 party_info = self.get_parties(result_tree)
                 events = self.get_docket_events(result_tree)
 
-                breakpoint()
-
                 case_obj = {
                     **case_info,
                     **party_info,
+                    **result,
                     'events': events,
                 }
 
