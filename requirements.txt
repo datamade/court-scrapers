@@ -1,3 +1,4 @@
+boto3==1.23.2
 lxml
-requests
 mechanize
+requests
