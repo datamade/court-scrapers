@@ -76,7 +76,7 @@ class ProbateScraper(requests.Session):
             'case_type': case_type.strip()
         }
 
-    def get_next_request_body(self, url, browser, result_table, requested_page):
+    def get_next_request_body(self, url, result_table, requested_page):
         viewstate = result_table.xpath("//input[@name='__VIEWSTATE']")[0].value
         viewstategenerator = result_table.xpath("//input[@name='__VIEWSTATEGENERATOR']")[0].value
         eventvalidation = result_table.xpath("//input[@name='__EVENTVALIDATION']")[0].value
@@ -96,12 +96,9 @@ class ProbateScraper(requests.Session):
         return results_table
 
     def iterate_search_results(self, url, result_table, current_page_number=1):
-        last_page = False
         # check if this is the last page of results
-        *_, last_page_link = result_table.xpath("./tr[@class='GridPager']/td/table/tr/td/a/text()")
-        if str(current_page_number) != last_page_link:
-            next_table = self.get_next_request_body(url, result_table, current_page_number + 1)
-            self.iterate_search_results(url, next_table, browser, current_page_number + 1)
+        *_, last_page_link = result_table.xpath("./tr[@class='GridPager']//a/text()")
+        last_page = str(current_page_number) == last_page_link
 
         case_data = {
             'case_number': '',
@@ -109,6 +106,7 @@ class ProbateScraper(requests.Session):
             'claimant': ''
         }
         for result in result_table[1:]:
+            last_result = result == result_table[-2]
             try:
                 case_number, estate, claimant, *_ = result.xpath("./td/text()")
             except ValueError:
@@ -116,10 +114,8 @@ class ProbateScraper(requests.Session):
             case_data['case_number'] = case_number.strip()
             case_data['estate_of'] = estate.strip()
             case_data['claimant'] = claimant.strip()
-            yield case_data, last_page
-
+            yield case_data, last_result, last_page, current_page_number
         print(f"finished iterating over page {current_page_number}")
-
 
     def get_search_results(self, url, year='2021'):
         year_start = datetime.date(year, 1, 2)
@@ -179,7 +175,8 @@ class ProbateScraper(requests.Session):
                 'filing_date': date_str,
             }
 
-            for result in self.iterate_search_results(url, result_table):
+            for item in self.iterate_search_results(url, result_table):
+                result, is_last_result, is_last_page, current_page_number = item
                 if not case_data['case_number']:
                     case_data['case_number'] = result['case_number']
                     case_data['estate_of'] = result['estate_of']
@@ -188,12 +185,15 @@ class ProbateScraper(requests.Session):
                     case_data['claimants'].append(result['claimant'])
                 elif case_data['case_number'] != result['case_number']:
                     yield case_data
-
                     case_data['case_number'] = result['case_number']
                     case_data['estate_of'] = result['estate_of']
                     case_data['claimants'] = [result['claimant']]
 
-                # will need to figure out what to do with last result on last page
+                if is_last_result and is_last_page:
+                    yield case_data
+                elif is_last_result and not is_last_page:
+                    next_table = self.get_next_request_body(url, result_table, current_page_number + 1)
+                    self.iterate_search_results(url, next_table, current_page_number + 1)
 
     def scrape(self, url, year='2021'):
         viewstate, viewstategenerator, eventvalidation = self.get_dotnet_context(url)
@@ -237,7 +237,7 @@ class ProbateScraper(requests.Session):
 
 if __name__ == '__main__':
     scraper = ProbateScraper()
-    years = [2021, 2022]
+    years = [2021]
     url = 'https://casesearch.cookcountyclerkofcourt.org/ProbateDocketSearch.aspx'
     for year in years:
         for case_number, case_obj in scraper.scrape(url, year=year):
