@@ -23,14 +23,25 @@ cache:
     - .cache/pip
     - venv/
 
+stages:
+  - first
+  - second
+
 before_script:
-  - apt-get update && apt-get -y --no-install-recommends install jq
   - python --version  # For debugging
   - pip install virtualenv
   - virtualenv venv
   - source venv/bin/activate
   - pip install -r requirements.txt
 
-artifact_download:
+job1:
+  stage: first
   script:
-    - python scripts/download_artifacts.py
+    - python scripts/upload_scrapes.py
+
+job2:
+  stage: second
+  trigger:
+    project: court-transparency-project/court-scrapers-etl
+    branch: swap-repos
+
