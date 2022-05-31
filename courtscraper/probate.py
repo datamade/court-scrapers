@@ -3,9 +3,11 @@ import datetime
 import re
 import json
 
+from dateutil.rrule import rrule, DAILY
 import lxml.html
 import requests
 import mechanize
+
 
 class ProbateScraper(requests.Session):
     def get_dotnet_context(self, url):
@@ -122,7 +124,7 @@ class ProbateScraper(requests.Session):
             next_table = self.get_next_request_body(url, result_table, requested_page_number)
             yield from self.iterate_search_results(url, next_table, current_page_number=requested_page_number)
 
-    def initialize_date_search(self, url, br):
+    def initialize_date_search(self, url, br, date_str):
         response = br.open(url)
         br.select_form(id='ctl01')
         br.set_all_readonly(False)
@@ -146,7 +148,6 @@ class ProbateScraper(requests.Session):
         br.set_all_readonly(False)
 
         # Specify the date to search
-        date_str = day.strftime('%m/%d/%Y')
         br['ctl00$MainContent$dtTxt'] = date_str
 
         response = br.submit().read().decode('utf-8')
@@ -157,21 +158,21 @@ class ProbateScraper(requests.Session):
         except ValueError:
             return
 
-    def get_search_results(self, url, year='2021'):
-        year_start = datetime.date(year, 1, 2)
-        year_end = datetime.date(year, 12, 30)
-        year_range = year_end - year_start
-        weekdays = [
-            year_start + datetime.timedelta(days=day)
-            for day in range(year_range.days)
-            if (year_start + datetime.timedelta(days=day)).weekday() < 5
-        ]
+    def get_search_results(self, url, year=2021):
+        weekdays = rrule(
+            DAILY,
+            dtstart=datetime.date(year, 1, 2),
+            until=datetime.date(year, 12, 30),
+            byweekday=[0, 1, 2, 3, 4]
+        )
 
         br = mechanize.Browser()
         br.addheaders = [('User-agent', 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9 Firefox/3.0.1')]
         br.set_handle_robots(False)
         for day in weekdays:
-            result_table = self.initialize_date_search(url, br)
+            date_str = date_str = day.strftime('%m/%d/%Y')
+
+            result_table = self.initialize_date_search(url, br, date_str)
             if not result_table:
                 continue
 
