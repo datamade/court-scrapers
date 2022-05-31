@@ -43,5 +43,5 @@ job2:
   stage: second
   trigger:
     project: court-transparency-project/court-scrapers-etl
-    branch: main
+    branch: swap-repos
 
