@@ -21,6 +21,8 @@ class ProbateScraper(requests.Session):
         return viewstate, viewstategenerator, eventvalidation
 
     def get_parties(self, tree):
+        # TODO: Rename participant to estate_of?
+        # https://gitlab.com/court-transparency-project/court-scrapers/-/issues/15
         participant = tree.xpath(".//span[@id='MainContent_lblPartyTitle']")[0].text[10:]
 
         party_info_table = tree.xpath("//table[@id='MainContent_gdvPartyInformationDefendant']")
@@ -62,7 +64,6 @@ class ProbateScraper(requests.Session):
 
         case_number, = first_table.xpath(".//span[@id='MainContent_lblCaseNumber']/text()") or ['']
         calendar, = first_table.xpath(".//span[@id='MainContent_lblCalendar']/text()") or ['']
-        date_filed, = first_table.xpath(".//span[@id='MainContent_lblDateFiled']/text()") or ['']
         division, = first_table.xpath(".//span[@id='MainContent_lblDivision']/text()") or ['']
         filing_date, = first_table.xpath(".//span[@id='MainContent_lblFilingDate']/text()") or ['']
         estate_of, = first_table.xpath(".//span[@id='MainContent_lblEstateOf']/text()") or ['']
@@ -73,7 +74,6 @@ class ProbateScraper(requests.Session):
             'calendar': calendar.strip(),
             'filing_date': filing_date.strip(),
             'division': division.strip(),
-            'date_filed': date_filed.strip(),
             'estate_of': estate_of.strip(),
             'case_type': case_type.strip()
         }
@@ -184,12 +184,23 @@ class ProbateScraper(requests.Session):
             }
 
             for result, is_last_result, is_last_page in self.iterate_search_results(url, result_table):
-                # When `iterate_search_results` yields data about row `n`, this loop
-                # yields data about row `n - 1` once it establishes that the case number
-                # in row `n` is different than the case number in row `n - 1`.
+                # Cases can appear arbitrarily many times in search results.
+                # This loop assumes that case number is a unique identifier,
+                # and that records about cases will all appear together.
+                #
+                # If the current case number matches the previous case number,
+                # continue adding information about the case.
+                #
+                # TODO: The same case number can be associated with many
+                # different parties listed as the Estate. What does this mean?
+                # https://gitlab.com/court-transparency-project/court-scrapers/-/issues/15
+                #
+                # TODO: Dedupe claimants.
                 if case_data['case_number'] == result['case_number']:
                     case_data['claimants'].append(result['claimant'])
 
+                # If the case number has changed, yield the previous case and
+                # operate on a fresh copy of case_data.
                 elif case_data['case_number'] != result['case_number']:
                     if case_data['case_number']:  # Don't yield initial empty case data
                         yield case_data
@@ -198,7 +209,6 @@ class ProbateScraper(requests.Session):
                     case_data['estate_of'] = result['estate_of']
                     case_data['claimants'] = [result['claimant']]
 
-                # If last result on last page, don't expect another case_data obj
                 if is_last_result and is_last_page:
                     yield case_data
 
