@@ -37,7 +37,7 @@ before_script:
 job1:
   stage: first
   script:
-    - python scripts/pipeline_demo.py
+    - python scripts/upload_scrapes.py
 
 job2:
   stage: second
