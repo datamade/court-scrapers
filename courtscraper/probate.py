@@ -60,14 +60,22 @@ class ProbateScraper(requests.Session):
         return case_activity
 
     def get_case_info(self, result_tree):
+        case_num_string = result_tree.xpath(".//span[@id='MainContent_lblDetailHeader']")[0].text_content()
+        estate_title = result_tree.xpath(".//span[@id='MainContent_lblPartyTitle']")[0].text_content()
+
+        estate_of = strip_estate(estate_title)
+        case_number = strip_case_number(case_num_string)
+
+
         first_table, *_ = result_tree.xpath(".//table[@class='table table-striped']")[0]
 
-        case_number, = first_table.xpath(".//span[@id='MainContent_lblCaseNumber']/text()") or ['']
+        # case_number, = first_table.xpath(".//span[@id='MainContent_lblCaseNumber']/text()") or ['']
         calendar, = first_table.xpath(".//span[@id='MainContent_lblCalendar']/text()") or ['']
         division, = first_table.xpath(".//span[@id='MainContent_lblDivision']/text()") or ['']
         filing_date, = first_table.xpath(".//span[@id='MainContent_lblFilingDate']/text()") or ['']
-        estate_of, = first_table.xpath(".//span[@id='MainContent_lblEstateOf']/text()") or ['']
+        # estate_of, = first_table.xpath(".//span[@id='MainContent_lblEstateOf']/text()") or ['']
         case_type, = first_table.xpath(".//span[@id='MainContent_lblCaseType']/text()") or ['']
+
 
         return {
             'case_number': case_number.strip(),
@@ -252,6 +260,20 @@ class ProbateScraper(requests.Session):
 
                 yield header_case_number, case_obj
 
+
+def strip_estate(estate_string):
+
+    pattern = r'Estate of ([A-Z, ]*)'
+    name = re.match(pattern, estate_string).group(1)
+    # name on site is in DOE, JOHN format
+    name_list = list(map(lambda x: x.strip(), name.split(',')[::-1]))
+    return ' '.join(name_list)
+
+
+def strip_case_number(case_number_string):
+
+    pattern = r'Case Information for Case Number: ([A-Z,0-9]*)'
+    return re.match(pattern, case_number_string).group(1)
 
 if __name__ == '__main__':
     scraper = ProbateScraper()
