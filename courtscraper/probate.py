@@ -2,6 +2,7 @@ from os.path import exists
 import datetime
 import re
 import json
+import pdb
 
 from dateutil.rrule import rrule, DAILY
 import lxml.html
@@ -60,11 +61,8 @@ class ProbateScraper(requests.Session):
         return case_activity
 
     def get_case_info(self, result_tree):
-        case_num_string = result_tree.xpath(".//span[@id='MainContent_lblDetailHeader']")[0].text_content()
-        estate_title = result_tree.xpath(".//span[@id='MainContent_lblPartyTitle']")[0].text_content()
-
-        estate_of = strip_estate(estate_title)
-        case_number = strip_case_number(case_num_string)
+        case_number = result_tree.xpath(".//span[@id='MainContent_lblDetailHeader']/descendant-or-self::*/text()")[-1]
+        estate_title = result_tree.xpath(".//span[@id='MainContent_lblPartyTitle']/descendant-or-self::*/text()")[0]
 
         first_table, *_ = result_tree.xpath(".//table[@class='table table-striped']")[0]
         calendar, = first_table.xpath(".//span[@id='MainContent_lblCalendar']/text()") or ['']
@@ -77,7 +75,7 @@ class ProbateScraper(requests.Session):
             'calendar': calendar.strip(),
             'filing_date': filing_date.strip(),
             'division': division.strip(),
-            'estate_of': estate_of.strip(),
+            'estate_of': get_estate_name(estate_title).strip(),
             'case_type': case_type.strip()
         }
 
@@ -255,18 +253,17 @@ class ProbateScraper(requests.Session):
 
                 yield header_case_number, case_obj
 
-def strip_estate(estate_string):
+
+def get_estate_name(estate_string):
+    """Probate site has estate owner's name in 'Estate of [owner]' format"""
 
     pattern = r'Estate of ([A-Z, ]*)'
-    name = re.match(pattern, estate_string).group(1)
-    # name on site is in DOE, JOHN format
-    name_list = list(map(lambda x: x.strip(), name.split(',')[::-1]))
-    return ' '.join(name_list)
+    result = re.search(pattern, estate_string)
+    if result:
+        return result.group(1)
+    else:
+        return ''
 
-def strip_case_number(case_number_string):
-
-    pattern = r'Case Information for Case Number: ([A-Z,0-9]*)'
-    return re.match(pattern, case_number_string).group(1)
 
 if __name__ == '__main__':
     scraper = ProbateScraper()
