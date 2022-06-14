@@ -60,13 +60,13 @@ class ProbateScraper(requests.Session):
         return case_activity
 
     def get_case_info(self, result_tree):
-        first_table, *_ = result_tree.xpath(".//table[@class='table table-striped']")[0]
+        case_number = result_tree.xpath(".//span[@id='MainContent_lblDetailHeader']/descendant-or-self::*/text()")[-1]
+        estate_title = result_tree.xpath(".//span[@id='MainContent_lblPartyTitle']/descendant-or-self::*/text()")[0]
 
-        case_number, = first_table.xpath(".//span[@id='MainContent_lblCaseNumber']/text()") or ['']
+        first_table, *_ = result_tree.xpath(".//table[@class='table table-striped']")[0]
         calendar, = first_table.xpath(".//span[@id='MainContent_lblCalendar']/text()") or ['']
         division, = first_table.xpath(".//span[@id='MainContent_lblDivision']/text()") or ['']
         filing_date, = first_table.xpath(".//span[@id='MainContent_lblFilingDate']/text()") or ['']
-        estate_of, = first_table.xpath(".//span[@id='MainContent_lblEstateOf']/text()") or ['']
         case_type, = first_table.xpath(".//span[@id='MainContent_lblCaseType']/text()") or ['']
 
         return {
@@ -74,7 +74,7 @@ class ProbateScraper(requests.Session):
             'calendar': calendar.strip(),
             'filing_date': filing_date.strip(),
             'division': division.strip(),
-            'estate_of': estate_of.strip(),
+            'estate_of': self.get_estate_name(estate_title).strip(),
             'case_type': case_type.strip()
         }
 
@@ -251,6 +251,16 @@ class ProbateScraper(requests.Session):
                 }
 
                 yield header_case_number, case_obj
+
+    def get_estate_name(self, estate_string):
+        """Probate site has estate owner's name in 'Estate of [owner]' format"""
+
+        pattern = r'Estate of ([A-Z, ]*)'
+        result = re.search(pattern, estate_string)
+        if result:
+            return result.group(1)
+        else:
+            return ''
 
 
 if __name__ == '__main__':
