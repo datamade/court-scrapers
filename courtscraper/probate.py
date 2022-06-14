@@ -74,7 +74,7 @@ class ProbateScraper(requests.Session):
             'calendar': calendar.strip(),
             'filing_date': filing_date.strip(),
             'division': division.strip(),
-            'estate_of': get_estate_name(estate_title).strip(),
+            'estate_of': self.get_estate_name(estate_title).strip(),
             'case_type': case_type.strip()
         }
 
@@ -252,16 +252,15 @@ class ProbateScraper(requests.Session):
 
                 yield header_case_number, case_obj
 
+    def get_estate_name(self, estate_string):
+        """Probate site has estate owner's name in 'Estate of [owner]' format"""
 
-def get_estate_name(estate_string):
-    """Probate site has estate owner's name in 'Estate of [owner]' format"""
-
-    pattern = r'Estate of ([A-Z, ]*)'
-    result = re.search(pattern, estate_string)
-    if result:
-        return result.group(1)
-    else:
-        return ''
+        pattern = r'Estate of ([A-Z, ]*)'
+        result = re.search(pattern, estate_string)
+        if result:
+            return result.group(1)
+        else:
+            return ''
 
 
 if __name__ == '__main__':
