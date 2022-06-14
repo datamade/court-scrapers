@@ -2,7 +2,6 @@ from os.path import exists
 import datetime
 import re
 import json
-import pdb
 
 from dateutil.rrule import rrule, DAILY
 import lxml.html
