@@ -1,5 +1,4 @@
 boto3==1.23.2
-python-dotenv==0.20.0
 lxml
 mechanize
 requests
