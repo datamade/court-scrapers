@@ -28,16 +28,24 @@ class ProbateScraper(requests.Session):
         party_info_table = tree.xpath("//table[@id='MainContent_gdvPartyInformationDefendant']")
         if party_info_table:
             party_list = party_info_table[0].xpath("./tr/td/text()")
-            parties = [s.strip() for s in party_list if s.strip()]
-            defendant, attorney = parties
+            defendant_list = []
+            attorney_list = []
+            for i, item in enumerate(party_list):
+                if i % 2 == 0:
+                    defendant_list.append(item)
+                else:
+                    attorney_list.append(item)
+
+            defendant = [d.strip() for d in defendant_list if a.strip()]
+            attorney = [a.strip() for a in attorney_list if a.strip()]
         else:
             defendant = ''
             attorney = ''
 
         return {
             'participant': participant.strip(),
-            'defendant': defendant.strip(),
-            'attorney': attorney.strip()
+            'defendant': defendant,
+            'attorney': attorney
         }
 
     def get_docket_events(self, result_tree):
