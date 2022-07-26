@@ -36,7 +36,7 @@ class ProbateScraper(requests.Session):
                 else:
                     attorney_list.append(item)
 
-            defendant = [d.strip() for d in defendant_list if a.strip()]
+            defendant = [d.strip() for d in defendant_list if d.strip()]
             attorney = [a.strip() for a in attorney_list if a.strip()]
         else:
             defendant = ''
