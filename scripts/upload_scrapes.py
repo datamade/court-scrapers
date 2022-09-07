@@ -1,20 +1,18 @@
-import boto3
 import os
 from datetime import datetime
+
+import boto3
 
 
 def main():
     client = boto3.client('s3')
 
-    with open('data/artifact_1.txt', 'w') as f:
-        f.write(f'Hello from... ({datetime.today().isoformat()})')
+    scrapes_dir = 'courtscraper/scrape'
+    for file in os.listdir(scrapes_dir):
+        if file == '.gitkeep':
+            continue
 
-    with open('data/artifact_2.txt', 'w') as f:
-        f.write(f'...an artifact! ({datetime.today().isoformat()})')
-
-    client.upload_file(os.path.abspath('data/artifact_1.txt'), 'court-scrapers', 'artifact_1.txt')
-    client.upload_file(os.path.abspath('data/artifact_2.txt'), 'court-scrapers', 'artifact_2.txt')
-
+        client.upload_file(os.path.abspath(f'{scrapes_dir}/{file}'), 'court-scrapers', f'{file}')
 
 if __name__ == '__main__':
     main()

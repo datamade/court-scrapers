@@ -20,22 +20,58 @@ class ProbateScraper(requests.Session):
 
         return viewstate, viewstategenerator, eventvalidation
 
+    def party_table_parties(self, tree):
+        party_info_table = tree.xpath("//table[@id='MainContent_gdvPartyInformationDefendant']")
+        defendants = []
+        attorneys = []
+        if party_info_table:
+            party_list = party_info_table[0].xpath("./tr/td/text()")
+            defendant_list = []
+            attorney_list = []
+            for i, item in enumerate(party_list):
+                if i % 2 == 0:
+                    defendant_list.append(item)
+                else:
+                    attorney_list.append(item)
+
+            defendants = [d.strip() for d in defendant_list if d.strip()]
+            attorneys = [a.strip() for a in attorney_list if a.strip()]
+
+        return set(defendants), set(attorneys)
+
+    def activity_table_parties(self, tree):
+        activity_table, *_ = tree.xpath("//table[@id='MainContent_gdvCaseActivity']")
+        participants = []
+        attorneys = []
+        if activity_table is not None:
+            for row in activity_table.xpath("./tr")[1:]:
+                date, activity, judge, court_date, court_time, attorney, *_, participant = row.xpath(".//td/text()")
+
+                attorney_clean = attorney.strip()
+                if attorney_clean:
+                    attorneys.append(attorney_clean)
+
+                participant_clean = participant.strip()
+                if participant_clean:
+                    participants.append(participant_clean)
+
+
+        return set(attorneys), set(participants)
+
     def get_parties(self, tree):
         # TODO: Rename participant to estate_of?
         # https://gitlab.com/court-transparency-project/court-scrapers/-/issues/15
         participant = tree.xpath(".//span[@id='MainContent_lblPartyTitle']")[0].text[10:]
 
-        party_info_table = tree.xpath("//table[@id='MainContent_gdvPartyInformationDefendant']")
-        if party_info_table:
-            defendant, attorney = party_info_table[0].xpath("./tr/td/text()")
-        else:
-            defendant = ''
-            attorney = ''
+        ptp_defendants, ptp_attorneys = self.party_table_parties(tree)
+        atp_attorneys, atp_participants = self.activity_table_parties(tree)
+
+        participants = {participant.strip(), *atp_participants}
 
         return {
-            'participant': participant.strip(),
-            'defendant': defendant.strip(),
-            'attorney': attorney.strip()
+            'participants': [*participants],
+            'defendants': [*ptp_defendants],
+            'attorneys': [*ptp_attorneys, *atp_attorneys]
         }
 
     def get_docket_events(self, result_tree):
@@ -173,7 +209,7 @@ class ProbateScraper(requests.Session):
             date_str = date_str = day.strftime('%m/%d/%Y')
 
             result_table = self.initialize_date_search(url, br, date_str)
-            if not result_table:
+            if result_table is None:
                 continue
 
             case_data = {
