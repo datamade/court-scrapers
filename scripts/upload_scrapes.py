@@ -8,9 +8,9 @@ def main():
     client = boto3.client('s3')
 
     scrapes_dir = pathlib.Path('scrape')
-    for file in scrapes_dir.glob('*.json'):
+    for f in scrapes_dir.glob('*.json'):
 
-        client.upload_file(file.absolute(), 'court-scrapers', file.name)
+        client.upload_file(str(f.absolute()), 'court-scrapers', f.name)
 
 if __name__ == '__main__':
     main()
