@@ -11,7 +11,7 @@ import mechanize
 
 class ProbateScraper(requests.Session):
     def get_dotnet_context(self, url):
-        response = requests.get(url).text
+        response = self.get(url).text
 
         tree = lxml.html.fromstring(response)
         viewstate = tree.xpath("//input[@id='__VIEWSTATE']")[0].value
@@ -127,7 +127,7 @@ class ProbateScraper(requests.Session):
             '__EVENTVALIDATION': eventvalidation
         }
 
-        response = requests.post(url, data=next_request_body).text
+        response = self.post(url, data=next_request_body).text
         result_tree = lxml.html.fromstring(response)
         try:
             return result_tree.xpath(".//table[@id='MainContent_grdRecords']")[0]
@@ -266,7 +266,7 @@ class ProbateScraper(requests.Session):
                 'ctl00$MainContent$btnSearch': 'Start New Search'
             }
 
-            search_response = requests.post(url, data=request_body).text
+            search_response = self.post(url, data=request_body).text
 
             result_tree = lxml.html.fromstring(search_response)
 
@@ -300,12 +300,25 @@ class ProbateScraper(requests.Session):
 
 
 if __name__ == '__main__':
+    import logging
+    import tqdm
+    import sys
+
+    logging.basicConfig(level=logging.DEBUG)
+    file_limit = int(sys.argv[1])
+
     scraper = ProbateScraper()
     years = [2021, 2022]
     url = 'https://casesearch.cookcountyclerkofcourt.org/ProbateDocketSearch.aspx'
+    i = 0
     for year in years:
-        for case_number, case_obj in scraper.scrape(url, year=year):
-            file_path = f'./courtscraper/scrape/{case_number}.json'
+        if i >= file_limit:
+            break
+        for case_number, case_obj in tqdm.tqdm(scraper.scrape(url, year=year)):
+            file_path = f'./scrape/{case_number}.json'
             with open(file_path, 'w+') as output:
                 output.write(json.dumps(case_obj, sort_keys=True, indent=4))
             print(f"Successfully scraped {case_number}")
+            i += 1
+            if i >= file_limit:
+                break

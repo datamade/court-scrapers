@@ -2,3 +2,4 @@ boto3==1.23.2
 lxml
 mechanize
 requests
+tqdm

@@ -1,4 +1,4 @@
-import os
+import pathlib
 from datetime import datetime
 
 import boto3
@@ -7,12 +7,10 @@ import boto3
 def main():
     client = boto3.client('s3')
 
-    scrapes_dir = 'courtscraper/scrape'
-    for file in os.listdir(scrapes_dir):
-        if file == '.gitkeep':
-            continue
+    scrapes_dir = pathlib.Path('scrape')
+    for file in scrapes_dir.glob('*.json'):
 
-        client.upload_file(os.path.abspath(f'{scrapes_dir}/{file}'), 'court-scrapers', f'{file}')
+        client.upload_file(file.absolute(), 'court-scrapers', file.name)
 
 if __name__ == '__main__':
     main()
