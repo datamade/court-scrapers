@@ -37,7 +37,7 @@ before_script:
 job1:
   stage: first
   script:
-    - python scripts/upload_scrapes.py
+    - make
 
 job2:
   stage: second
