@@ -38,7 +38,7 @@ def initialize_date_search(url, br, date_str):
     br['ctl00$MainContent$dtTxt'] = date_str
 
     response = br.submit().read().decode('utf-8')
-    print(response)
+
     result_tree = lxml.html.fromstring(response)
 
     try:
@@ -46,5 +46,79 @@ def initialize_date_search(url, br, date_str):
     except ValueError:
         return
 
-result = initialize_date_search(url, br, date_str)
-	
+def get_search_results(table):
+    table_rows = table.xpath('.//tr')
+    assert len(table_rows) < 1000
+    cases = []
+
+    for row in table_rows[1:]:
+        cells = row.xpath('.//td/text()')
+
+        case_data = {
+            'name': '',
+            'case_number': '',
+            'division': '',
+            'party_type': '',
+            'case_type': '',
+            'date_filed': '',
+            'case_url': ''
+        }
+
+        case_data['name'] = cells[0]
+        case_data['case_number'] = cells[3]
+        case_data['division'] = cells[4]
+        case_data['party_type'] = cells[5]
+        case_data['case_type'] = cells[6]
+        case_data['date_filed'] = cells[7]
+
+        # Build the case url
+        case_num = case_data['case_number']
+        url_beginning = 'https://courtlink.lexisnexis.com/cookcounty/FindDock.aspx?NCase='
+        url_end = '&SearchType=0&Database=1&case_no=&PLtype=1&sname=&CDate='
+
+        if case_num[4].isdigit():
+            # If the character after the year in case number 
+            # is numeric, build url with an M attached
+            url_case_num = case_num[:4]+'-M' + case_num[4] + '-' + case_num[5:]
+
+            case_data['case_url'] = url_beginning + url_case_num + url_end
+            
+        else:
+            # Use the whole number as is
+            case_data['case_url'] = url_beginning + case_num + url_end
+
+        cases.append(case_data)
+
+    return cases
+
+
+result_table = initialize_date_search(url, br, date_str)
+cases_list = get_search_results(result_table)
+
+for case in cases_list:
+    url = case['case_url']
+
+    response = br.open(url).read().decode('utf-8')
+    result_tree = lxml.html.fromstring(response)
+
+    case_details = result_tree.xpath(".//div[@id='objCaseDetails']//table[1]")
+    # Accessing past the first gives repeat info
+    print(case_details[0].text_content())
+    print('case details printed')
+
+    party_information = result_tree.xpath(".//div[@id='objCaseDetails']//table[2]")
+    for field in party_information:
+        print(field.text_content())
+        print('party info printed')
+
+    case_activity = result_tree.xpath(".//div[@id='objCaseDetails']//table[position() >= 3]")
+    for field in case_activity:
+        print(field.text_content())
+        print('case activity printed')
+
+    print('done')
+    
+
+
+
+
