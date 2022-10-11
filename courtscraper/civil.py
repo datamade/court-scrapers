@@ -176,6 +176,76 @@ def get_party_information(tree):
 
     return result
 
+def get_case_activity(tree):
+    case_activity = tree.xpath(".//div[@id='objCaseDetails']/table[position() >= 3]")
+    
+    activities_list = []
+    for i, row in enumerate(case_activity):
+        result = { 
+            'date': '',
+            'participant': '',
+            'activity': '',
+            'attorney': ''
+        }
+
+        # Perform on every other table so we can organize related
+        # info from the current table and the next one, in one dict
+        if i % 2 == 0:
+            # TODO: clean up variable names to make them more readable?
+
+            # Even tables
+            activity_meta = row.xpath('.//td')
+            date = clean_whitespace(activity_meta[0])
+            date = date.split(':')[1].strip()
+            result['date'] = date
+
+            participant = clean_whitespace(activity_meta[1])
+            participant = participant.split(':')[1].strip()
+            result['participant'] = participant
+
+            # Odd tables
+            activity_details = case_activity[i+1].xpath('./tr')
+            activity = clean_whitespace(activity_details[0])
+
+            # This requires different formatting than other activities
+            if activity == 'New Case Filing':
+                new_case = {
+                    'name': 'New Case Filing',
+                    'date': '',
+                    'court_time': '',
+                    'court_room': ''
+                }
+
+                # Select just the details on left side of the table
+                new_case_details = case_activity[i+1].xpath('./tr[2]/td[1]//td[2]')
+
+                date = clean_whitespace(new_case_details[0])
+                court_time = clean_whitespace(new_case_details[1])
+                court_room = clean_whitespace(new_case_details[2])
+                new_case['date'] = date
+                new_case['court_time'] = court_time
+                new_case['court_room'] = court_room
+
+                result['activity'] = new_case
+
+                # The attorney var is used to find if an attorney
+                # is listed in the new case filing details.
+                # If the length is more than 1, then a spot
+                # for an attorney was found and can be used.
+                attorney = clean_whitespace(activity_details[1])
+                attorney = attorney.split('Attorney:')
+                if len(attorney) > 1:
+                    attorney = attorney[1].strip()
+                    result['attorney'] = attorney
+            else:
+                result['activity'] = activity
+                
+                attorney = clean_whitespace(activity_details[1])
+                attorney = attorney.split(':')[1].strip()
+                result['attorney'] = attorney
+            activities_list.append(result)
+    return activities_list
+
 result_table = initialize_date_search(url, br, date_str)
 cases_list = get_search_results(result_table)
 
@@ -192,42 +262,11 @@ for case in cases_list:
 
     case_dict['case_details'] = get_case_details(result_tree)
     case_dict['party_information'] = get_party_information(result_tree)
-
-    # TODO: write this function once its functionality is off the ground
-    # case_dict['case_activity'] = get_case_activity(result_tree)
-
-    case_activity = result_tree.xpath(".//div[@id='objCaseDetails']/table[position() >= 3]")
-    for i, row in enumerate(case_activity):
-        case_activity_result = { 
-            'date': '',
-            'participant': '',
-            'activity': '',
-            'extra': ''
-        }
-
-        if i % 2 == 0:
-            activity_meta = row.xpath('.//td')
-            date = clean_whitespace(activity_meta[0])
-            date = date.split(':')[1].strip()
-            case_activity_result['date'] = date
-
-            participant = clean_whitespace(activity_meta[1])
-            participant = participant.split(':')[1].strip()
-            case_activity_result['participant'] = participant
-
-            activity_details = case_activity[i+1].xpath('./tr')
-            activity = clean_whitespace(activity_details[0])
-            case_activity_result['activity'] = activity
-
-            extra = clean_whitespace(activity_details[1])
-            case_activity_result['extra'] = extra
-
-            print(case_activity_result)
-        
-        print('case activity printed---')
+    case_dict['case_activity'] = get_case_activity(result_tree)
+    for item in case_dict['case_activity']:
+        print(item)
 
     print('done------------------')
-    break
     
 
 
