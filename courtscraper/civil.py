@@ -196,11 +196,34 @@ for case in cases_list:
     # TODO: write this function once its functionality is off the ground
     # case_dict['case_activity'] = get_case_activity(result_tree)
 
+    case_activity = result_tree.xpath(".//div[@id='objCaseDetails']/table[position() >= 3]")
+    for i, row in enumerate(case_activity):
+        case_activity_result = { 
+            'date': '',
+            'participant': '',
+            'activity': '',
+            'extra': ''
+        }
 
-    # TODO: Deal with this part after the first bits work
-    case_activity = result_tree.xpath(".//div[@id='objCaseDetails']//table[position() >= 3]")
-    for i, field in enumerate(case_activity):
-        print(clean_whitespace(field))
+        if i % 2 == 0:
+            activity_meta = row.xpath('.//td')
+            date = clean_whitespace(activity_meta[0])
+            date = date.split(':')[1].strip()
+            case_activity_result['date'] = date
+
+            participant = clean_whitespace(activity_meta[1])
+            participant = participant.split(':')[1].strip()
+            case_activity_result['participant'] = participant
+
+            activity_details = case_activity[i+1].xpath('./tr')
+            activity = clean_whitespace(activity_details[0])
+            case_activity_result['activity'] = activity
+
+            extra = clean_whitespace(activity_details[1])
+            case_activity_result['extra'] = extra
+
+            print(case_activity_result)
+        
         print('case activity printed---')
 
     print('done------------------')
