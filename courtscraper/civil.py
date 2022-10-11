@@ -1,6 +1,7 @@
 import requests
 import lxml.html
 import mechanize
+import re
 
 url = 'https://casesearch.cookcountyclerkofcourt.org/DocketSearch.aspx'
 date_str = '10/04/2022' # mm/dd/yyy
@@ -91,32 +92,119 @@ def get_search_results(table):
 
     return cases
 
+def clean_whitespace(text):
+    return re.sub('\s+', ' ', text.text_content()).strip()
+
+def get_case_details(tree):
+    result = {}
+
+    # Accessing past the first gives repeat info
+    case_details, = tree.xpath(".//div[@id='objCaseDetails']/table[1]")
+    
+    first_column = case_details.xpath(".//tr/td[1]")
+    for row in first_column:
+        clean_row = clean_whitespace(row)
+        row_list = clean_row.split(':')
+
+        key = row_list[0]
+        value = row_list[1].strip()
+
+        result[key] = value
+
+    last_column = case_details.xpath(".//tr/td[3]")
+    for row in last_column:
+        clean_row = clean_whitespace(row)
+        row_list = clean_row.split(':')
+
+        key = row_list[0]
+        value = row_list[1].strip()
+        
+        result[key] = value
+
+    return result
+
+def get_party_information(tree):
+    party_information, = tree.xpath(".//div[@id='objCaseDetails']//table[2]")
+    
+    plaintiffs = []
+    defendants = []
+    is_defendant = False
+    
+    first_column = party_information.xpath(".//tr/td[1]")
+    for row in first_column[1:]:
+        clean_row = clean_whitespace(row)
+        person = {
+            'name': ''
+        } 
+
+        # When reaching the row that says defendants, put following
+        # names in the defendants list
+        if is_defendant == True:
+            person['name'] = clean_row
+            defendants.append(person)
+        elif clean_row == 'Defendant(s)':
+            is_defendant = True
+        else:
+            person['name'] = clean_row
+            plaintiffs.append(person)
+    
+    defendants_index = 0
+    is_defendant = False
+
+    last_column = party_information.xpath(".//tr/td[3]")
+    for i, row in enumerate(last_column[1:]):
+        clean_row = clean_whitespace(row)
+        attorney = ''    
+
+        # Assign the attorney to plaintiffs
+        # until the str 'Attorney(s)' is found
+        # then add the rest to defendants
+        if is_defendant == True:
+            attorney = clean_row
+            defendants[defendants_index]['attorney'] = attorney
+            defendants_index += 1
+        elif clean_row == 'Attorney(s)':
+            is_defendant = True
+        else:
+            attorney = clean_row
+            plaintiffs[i]['attorney'] = attorney
+    
+    result = {
+        'plaintiffs': plaintiffs,
+        'defendants': defendants
+    }
+
+    return result
 
 result_table = initialize_date_search(url, br, date_str)
 cases_list = get_search_results(result_table)
 
 for case in cases_list:
     url = case['case_url']
-
     response = br.open(url).read().decode('utf-8')
     result_tree = lxml.html.fromstring(response)
 
-    case_details = result_tree.xpath(".//div[@id='objCaseDetails']//table[1]")
-    # Accessing past the first gives repeat info
-    print(case_details[0].text_content())
-    print('case details printed')
+    case_dict = {
+        'case_details': {},
+        'party_information': {},
+        'case_activity': {}
+    }
 
-    party_information = result_tree.xpath(".//div[@id='objCaseDetails']//table[2]")
-    for field in party_information:
-        print(field.text_content())
-        print('party info printed')
+    case_dict['case_details'] = get_case_details(result_tree)
+    case_dict['party_information'] = get_party_information(result_tree)
 
+    # TODO: write this function once its functionality is off the ground
+    # case_dict['case_activity'] = get_case_activity(result_tree)
+
+
+    # TODO: Deal with this part after the first bits work
     case_activity = result_tree.xpath(".//div[@id='objCaseDetails']//table[position() >= 3]")
-    for field in case_activity:
-        print(field.text_content())
-        print('case activity printed')
+    for i, field in enumerate(case_activity):
+        print(clean_whitespace(field))
+        print('case activity printed---')
 
-    print('done')
+    print('done------------------')
+    break
     
 
 
