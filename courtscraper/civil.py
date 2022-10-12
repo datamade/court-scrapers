@@ -185,7 +185,6 @@ def get_case_activity(tree):
             'date': '',
             'participant': '',
             'activity': '',
-            'attorney': ''
         }
 
         # Perform on every other table so we can organize related
@@ -211,38 +210,37 @@ def get_case_activity(tree):
             if activity == 'New Case Filing':
                 new_case = {
                     'name': 'New Case Filing',
-                    'date': '',
-                    'court_time': '',
-                    'court_room': ''
                 }
 
-                # Select just the details on left side of the table
-                new_case_details = case_activity[i+1].xpath('./tr[2]/td[1]//td[2]')
+                # Select the details in the new case filing
+                new_case_details = case_activity[i+1].xpath('./tr[2]//tr')
+                for item in new_case_details:
+                    row = clean_whitespace(item)
+                    row = row.split(':')
+                    detail_type = row[0]
+                    detail_value = row[1]
 
-                date = clean_whitespace(new_case_details[0])
-                court_time = clean_whitespace(new_case_details[1])
-                court_room = clean_whitespace(new_case_details[2])
-                new_case['date'] = date
-                new_case['court_time'] = court_time
-                new_case['court_room'] = court_room
+                    # The other activity types have attorney as a key
+                    # in the root of the result, as opposed to in
+                    # a new_case dict. This keeps that uniform.
+                    if detail_type == 'Attorney':
+                        result[detail_type] = detail_value
+                    else:
+                        new_case[detail_type] = detail_value
 
                 result['activity'] = new_case
-
-                # The attorney var is used to find if an attorney
-                # is listed in the new case filing details.
-                # If the length is more than 1, then a spot
-                # for an attorney was found and can be used.
-                attorney = clean_whitespace(activity_details[1])
-                attorney = attorney.split('Attorney:')
-                if len(attorney) > 1:
-                    attorney = attorney[1].strip()
-                    result['attorney'] = attorney
             else:
                 result['activity'] = activity
+
+                for item in activity_details[1:]:
+                    row = clean_whitespace(item)
+
+                    if row != '':
+                        row = row.split(':')
+                        detail_type = row[0]
+                        detail_value = row[1].strip()
+                        result[detail_type] = detail_value
                 
-                attorney = clean_whitespace(activity_details[1])
-                attorney = attorney.split(':')[1].strip()
-                result['attorney'] = attorney
             activities_list.append(result)
     return activities_list
 
