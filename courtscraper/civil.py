@@ -199,7 +199,7 @@ class CivilScraper:
     def scrape_year(self, year):
         for url in self.iterate_case_url(year):
             # response = self.br.open(url).read().decode('utf-8')
-            response = self.tr.get(url)
+            response = self.tr.get(url, headers={'User-agent': 'Mozilla/5.0 (Windows NT 10.0; rv:91.0) Gecko/20100101 Firefox/91.0'})
             time.sleep(1+3*random.random())
             print(response.text)
             result_tree = lxml.html.fromstring(response.text)
@@ -227,8 +227,12 @@ class CivilScraper:
                 # TODO: account for multiple cases w/same case number
                 print('found multiple cases for same case number at:', url)
             else:
-                self.tr.reset_identity()
                 print('nothing found here')
+                # Reset Tor
+                self.tr = TorRequest(proxy_port=9050, ctrl_port=9051, password=None)
+                self.tr.reset_identity()
+                response = self.tr.get('http://ipecho.net/plain')
+                print ("New Ip Address",response.text)
 
 scraper = CivilScraper()
 
