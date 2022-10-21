@@ -7,13 +7,34 @@ from torrequest import TorRequest
 import random
 import time
 
+BROWSER_HEADERS = {   
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
+            ,
+    "Accept-Encoding": "gzip, deflate, br"
+            ,
+    "Accept-Language": "en-US,en;q=0.5"
+            ,
+    "Connection": "keep-alive"
+            ,
+    "Host": "courtlink.lexisnexis.com"
+            ,
+    "Sec-Fetch-Dest": "document"
+            ,
+    "Sec-Fetch-Mode": "navigate"
+            ,
+    "Sec-Fetch-Site": "none"
+            ,
+    "Sec-Fetch-User": "?1"
+            ,
+    "Upgrade-Insecure-Requests": "1"
+            ,
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; rv:91.0) Gecko/20100101 Firefox/91.0"
+            
+}
 class CivilScraper:
     base_url = 'https://casesearch.cookcountyclerkofcourt.org/DocketSearch.aspx'
 
     def __init__(self):
-        # self.br = mechanize.Browser()
-        # self.br.addheaders = [('User-agent', 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9 Firefox/3.0.1')]
-        # self.br.set_handle_robots(False)
         self.tr = TorRequest(proxy_port=9050, ctrl_port=9051, password=None)
 
     def iterate_case_url(self, year):
@@ -39,7 +60,7 @@ class CivilScraper:
             district += 1
 
         # TODO: make a separate loop for M1's, 
-        # current min found is in 2022 at 715523
+        # current max found is in 2022 at 715523
         case_num_start = str(year) + '-M1-'
         case_num_end = 15439
         while case_num_end <= 715523:
@@ -198,10 +219,14 @@ class CivilScraper:
 
     def scrape_year(self, year):
         for url in self.iterate_case_url(year):
-            # response = self.br.open(url).read().decode('utf-8')
-            response = self.tr.get(url, headers={'User-agent': 'Mozilla/5.0 (Windows NT 10.0; rv:91.0) Gecko/20100101 Firefox/91.0'})
+            self.tr.session.cookies.clear()
+            response = self.tr.get('https://ipecho.net/plain')
+            print ("Tor Ip Address",response.text)
+            response = requests.get('https://ipecho.net/plain')
+            print ("Real Ip Address",response.text)
+            response = self.tr.get(url, headers=BROWSER_HEADERS)
             time.sleep(1+3*random.random())
-            print(response.text)
+
             result_tree = lxml.html.fromstring(response.text)
 
             case_dict = {
@@ -232,7 +257,6 @@ class CivilScraper:
                 self.tr = TorRequest(proxy_port=9050, ctrl_port=9051, password=None)
                 self.tr.reset_identity()
                 response = self.tr.get('http://ipecho.net/plain')
-                print ("New Ip Address",response.text)
 
 scraper = CivilScraper()
 
