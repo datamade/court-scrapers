@@ -9,29 +9,20 @@ import time
 import math
 
 BROWSER_HEADERS = {
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
-            ,
-    "Accept-Encoding": "gzip, deflate, br"
-            ,
-    "Accept-Language": "en-US,en;q=0.5"
-            ,
-    "Connection": "keep-alive"
-            ,
-    "Host": "courtlink.lexisnexis.com"
-            ,
-    "Sec-Fetch-Dest": "document"
-            ,
-    "Sec-Fetch-Mode": "navigate"
-            ,
-    "Sec-Fetch-Site": "none"
-            ,
-    "Sec-Fetch-User": "?1"
-            ,
-    "Upgrade-Insecure-Requests": "1"
-            ,
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Accept-Language": "en-US,en;q=0.5",
+    "Connection": "keep-alive",
+    "Host": "courtlink.lexisnexis.com",
+    "Sec-Fetch-Dest": "document",
+    "Sec-Fetch-Mode": "navigate",
+    "Sec-Fetch-Site": "none",
+    "Sec-Fetch-User": "?1",
+    "Upgrade-Insecure-Requests": "1",
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; rv:91.0) Gecko/20100101 Firefox/91.0"
-            
 }
+
+
 class CivilScraper:
     base_url = 'https://casesearch.cookcountyclerkofcourt.org/DocketSearch.aspx'
 
@@ -68,34 +59,30 @@ class CivilScraper:
         # return nothing gets reached, and then it needs to go up
         # to the next 10k tier, and start again
         case_num_start = str(year) + '-M1-'
-        case_num_end = 701190  # edited for testing, should be 10k
-        while case_num_end <= 715523:
+        case_num_end = 701190  # edited for testing, should start at 10k
+        while case_num_end < 800000:
             case_url = url_start + case_num_start + str("%06d" % (case_num_end,)) + url_end
 
             # ---- TEST ----
             test_response = self.tr.get(case_url, headers=BROWSER_HEADERS)
             result_tree = lxml.html.fromstring(test_response.text)
-            if len(result_tree.xpath(".//div[@id='objCaseDetails']/table")) > 0:
+            if (
+                len(result_tree.xpath(".//div[@id='objCaseDetails']/table")) > 0 or
+                len(result_tree.xpath(".//div/table[@id='dgdCaseList']")) > 0
+               ):
                 empty_searches = 0
-
-            elif len(result_tree.xpath(".//div/table[@id='dgdCaseList']")) > 0:
-                empty_searches = 0
-                # TODO: account for multiple cases w/same case number
-                print('found multiple cases for same case number at:', case_url)
 
             else:
                 empty_searches += 1
-                print('nothing found here')
-                # Reset Tor
-                self.tr = TorRequest(proxy_port=9050, ctrl_port=9051, password=None)
-                self.tr.reset_identity()
+                print('There have been', empty_searches, 'empty searches in a row')
+
                 if empty_searches > empty_search_limit:
                     # The case number should round up to the next 10k tier
                     # and start over
                     empty_searches = 0
                     case_num_end = math.ceil(case_num_end / 10000) * 10000
+                    case_num_end -= 1  # ensure next case_num ends in 0
 
-            print('There have been', empty_searches, 'empty searches in a row so far')
             # ---- END  ----
 
             print(case_url)
@@ -291,7 +278,6 @@ class CivilScraper:
                 # Reset Tor
                 self.tr = TorRequest(proxy_port=9050, ctrl_port=9051, password=None)
                 self.tr.reset_identity()
-                response = self.tr.get('http://ipecho.net/plain')
 
 
 scraper = CivilScraper()
@@ -300,7 +286,7 @@ for case in scraper.scrape_year(2021):
     case_number = case['case_number']
     print('outputting case #:', case_number)
 
-    # file_path = f'./scrape/{case_number}.json'
-    # with open(file_path, 'w+') as output:
-    #     json.dump(case, output, sort_keys=True, indent=4)
+    file_path = f'./scrape/{case_number}.json'
+    with open(file_path, 'w+') as output:
+        json.dump(case, output, sort_keys=True, indent=4)
     print('done')
