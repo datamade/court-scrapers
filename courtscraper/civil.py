@@ -28,6 +28,92 @@ class CivilScraper:
 
     def __init__(self):
         self.tr = TorRequest(proxy_port=9050, ctrl_port=9051, password=None)
+        self.case_types = [
+            {
+                'division': '2',
+                'type': '',
+                'start': 0,
+                'end': 999999,
+                'serial_format': '%06d'
+            },
+            {
+                'division': '3',
+                'type': '',
+                'start': 0,
+                'end': 999999,
+                'serial_format': '%06d'
+            },
+            {
+                'division': '4',
+                'type': '',
+                'start': 0,
+                'end': 999999,
+                'serial_format': '%06d'
+            },
+            {
+                'division': '5',
+                'type': '',
+                'start': 0,
+                'end': 999999,
+                'serial_format': '%06d'
+            },
+            {
+                'division': '6',
+                'type': '',
+                'start': 0,
+                'end': 999999,
+                'serial_format': '%06d'
+            },
+            {
+                'division': '1',
+                'type': '010',
+                'start': 0,
+                'end': 999,
+                'serial_format': '%03d'
+            },
+            {
+                'division': '1',
+                'type': '040',
+                'start': 0,
+                'end': 999,
+                'serial_format': '%03d'
+            },
+            {
+                'division': '1',
+                'type': '100',
+                'start': 0,
+                'end': 999,
+                'serial_format': '%03d'
+            },
+            {
+                'division': '1',
+                'type': '300',
+                'start': 0,
+                'end': 999,
+                'serial_format': '%03d'
+            },
+            {
+                'division': '1',
+                'type': '400',
+                'start': 0,
+                'end': 999,
+                'serial_format': '%03d'
+            },
+            {
+                'division': '1',
+                'type': '500',
+                'start': 0,
+                'end': 999,
+                'serial_format': '%03d'
+            },
+            {
+                'division': '1',
+                'type': '700',
+                'start': 0,
+                'end': 999,
+                'serial_format': '%03d'
+            }
+        ]
 
     def iterate_case_url(self, year):
         case_url = ''
@@ -42,24 +128,54 @@ class CivilScraper:
         district = 2
         district_str = ''
 
+        for case_type in self.case_types:
+            base_case_num = str(year) + '-M' + case_type['division'] + '-' + case_type['type']
+            for serial in range(case_type['start'], case_type['end']+1):
+                case_number = base_case_num + str(case_type['serial_format'] % (serial,))
+                case_url = url_start + case_number + url_end
+                print(case_url)
+        breakpoint()
+
         while district <= 6:  # M6 is current max of districts, not including L
             district_str = str(district)
             case_num_start = str(year) + '-M' + district_str + '-'
-            case_num_end = 1
+            case_num_end = 0
 
-            while case_num_end <= 2:  # edited for testing, current max is 7337
-                case_url = url_start + case_num_start + str("%06d" % (case_num_end,)) + url_end
-                yield case_url
-                case_num_end += 1
+            while (
+                    case_num_end < 8000 and  # current max is 7337
+                    empty_searches <= empty_search_limit
+                  ):
+                    case_url = url_start + case_num_start + str("%06d" % (case_num_end,)) + url_end
 
+                # ---- TEST ----
+                    test_response = self.tr.get(case_url, headers=BROWSER_HEADERS)
+                    result_tree = lxml.html.fromstring(test_response.text)
+                    if (
+                        len(result_tree.xpath(".//div[@id='objCaseDetails']/table")) > 0 or
+                        len(result_tree.xpath(".//div/table[@id='dgdCaseList']")) > 0
+                       ):
+                        empty_searches = 0
+
+                    else:
+                        empty_searches += 1
+                        print('There have been', empty_searches, 'empty searches in a row')
+                        # TODO: Can possibly move the content in scrape_year's
+                        # else statement into this else, and move the yield in
+                        # this function into the above if, so that case urls
+                        # only get passed through if they have content
+                # ---- END ----
+
+                    yield case_url
+                    case_num_end += 1
+
+            empty_searches = 0
             district += 1
 
-        # TODO: make a separate loop for M1's
-        # it needs to just iterate until the limit for urls that
-        # return nothing gets reached, and then it needs to go up
-        # to the next 10k tier, and start again
+        # Testing: When the empty search limit is reached,
+        # go up to the next 10k tier, and start again
         case_num_start = str(year) + '-M1-'
         case_num_end = 701190  # edited for testing, should start at 10k
+        empty_searches = 0
         while case_num_end < 800000:
             case_url = url_start + case_num_start + str("%06d" % (case_num_end,)) + url_end
 
@@ -241,9 +357,6 @@ class CivilScraper:
     def scrape_year(self, year):
 
         for url in self.iterate_case_url(year):
-            # response = requests.get('https://ipecho.net/plain')
-            # print("Real Ip Address", response.text)
-
             self.tr.session.cookies.clear()
             response = self.tr.get('https://ipecho.net/plain')
             print("Tor Ip Address", response.text)
