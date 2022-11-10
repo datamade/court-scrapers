@@ -1,4 +1,4 @@
-import requests
+# import requests
 import lxml.html
 import mechanize
 import re
@@ -30,88 +30,88 @@ class CivilScraper:
         self.tr = TorRequest(proxy_port=9050, ctrl_port=9051, password=None)
         self.case_types = [
             {
-                'division': '2',
+                'district': '2',
+                'type': '',
+                'start': 3,  # edited for testing, should be 0
+                'end': 999999,
+                'serial_format': '%06d'
+            },
+            {
+                'district': '3',
                 'type': '',
                 'start': 0,
                 'end': 999999,
                 'serial_format': '%06d'
             },
             {
-                'division': '3',
+                'district': '4',
                 'type': '',
                 'start': 0,
                 'end': 999999,
                 'serial_format': '%06d'
             },
             {
-                'division': '4',
+                'district': '5',
                 'type': '',
                 'start': 0,
                 'end': 999999,
                 'serial_format': '%06d'
             },
             {
-                'division': '5',
+                'district': '6',
                 'type': '',
                 'start': 0,
                 'end': 999999,
                 'serial_format': '%06d'
             },
             {
-                'division': '6',
-                'type': '',
+                'district': '1',
+                'type': '01',
                 'start': 0,
-                'end': 999999,
-                'serial_format': '%06d'
+                'end': 9999,
+                'serial_format': '%04d'
             },
             {
-                'division': '1',
-                'type': '010',
+                'district': '1',
+                'type': '04',
                 'start': 0,
-                'end': 999,
-                'serial_format': '%03d'
+                'end': 9999,
+                'serial_format': '%04d'
             },
             {
-                'division': '1',
-                'type': '040',
+                'district': '1',
+                'type': '1',
                 'start': 0,
-                'end': 999,
-                'serial_format': '%03d'
+                'end': 99999,
+                'serial_format': '%05d'
             },
             {
-                'division': '1',
-                'type': '100',
+                'district': '1',
+                'type': '3',
                 'start': 0,
-                'end': 999,
-                'serial_format': '%03d'
+                'end': 99999,
+                'serial_format': '%05d'
             },
             {
-                'division': '1',
-                'type': '300',
+                'district': '1',
+                'type': '4',
                 'start': 0,
-                'end': 999,
-                'serial_format': '%03d'
+                'end': 99999,
+                'serial_format': '%05d'
             },
             {
-                'division': '1',
-                'type': '400',
+                'district': '1',
+                'type': '5',
                 'start': 0,
-                'end': 999,
-                'serial_format': '%03d'
+                'end': 99999,
+                'serial_format': '%05d'
             },
             {
-                'division': '1',
-                'type': '500',
+                'district': '1',
+                'type': '7',
                 'start': 0,
-                'end': 999,
-                'serial_format': '%03d'
-            },
-            {
-                'division': '1',
-                'type': '700',
-                'start': 0,
-                'end': 999,
-                'serial_format': '%03d'
+                'end': 99999,
+                'serial_format': '%05d'
             }
         ]
 
@@ -125,85 +125,35 @@ class CivilScraper:
         # TODO: account for the district being a letter like L
         # instead of just a number
 
-        district = 2
-        district_str = ''
-
         for case_type in self.case_types:
-            base_case_num = str(year) + '-M' + case_type['division'] + '-' + case_type['type']
+            base_case_num = str(year) + '-M' + case_type['district'] + '-' + case_type['type']
             for serial in range(case_type['start'], case_type['end']+1):
                 case_number = base_case_num + str(case_type['serial_format'] % (serial,))
                 case_url = url_start + case_number + url_end
-                print(case_url)
-        breakpoint()
 
-        while district <= 6:  # M6 is current max of districts, not including L
-            district_str = str(district)
-            case_num_start = str(year) + '-M' + district_str + '-'
-            case_num_end = 0
-
-            while (
-                    case_num_end < 8000 and  # current max is 7337
-                    empty_searches <= empty_search_limit
-                  ):
-                    case_url = url_start + case_num_start + str("%06d" % (case_num_end,)) + url_end
-
-                # ---- TEST ----
-                    test_response = self.tr.get(case_url, headers=BROWSER_HEADERS)
-                    result_tree = lxml.html.fromstring(test_response.text)
-                    if (
-                        len(result_tree.xpath(".//div[@id='objCaseDetails']/table")) > 0 or
-                        len(result_tree.xpath(".//div/table[@id='dgdCaseList']")) > 0
-                       ):
-                        empty_searches = 0
-
-                    else:
-                        empty_searches += 1
-                        print('There have been', empty_searches, 'empty searches in a row')
-                        # TODO: Can possibly move the content in scrape_year's
-                        # else statement into this else, and move the yield in
-                        # this function into the above if, so that case urls
-                        # only get passed through if they have content
-                # ---- END ----
-
-                    yield case_url
-                    case_num_end += 1
-
-            empty_searches = 0
-            district += 1
-
-        # Testing: When the empty search limit is reached,
-        # go up to the next 10k tier, and start again
-        case_num_start = str(year) + '-M1-'
-        case_num_end = 701190  # edited for testing, should start at 10k
-        empty_searches = 0
-        while case_num_end < 800000:
-            case_url = url_start + case_num_start + str("%06d" % (case_num_end,)) + url_end
-
-            # ---- TEST ----
-            test_response = self.tr.get(case_url, headers=BROWSER_HEADERS)
-            result_tree = lxml.html.fromstring(test_response.text)
-            if (
-                len(result_tree.xpath(".//div[@id='objCaseDetails']/table")) > 0 or
-                len(result_tree.xpath(".//div/table[@id='dgdCaseList']")) > 0
-               ):
-                empty_searches = 0
-
-            else:
-                empty_searches += 1
-                print('There have been', empty_searches, 'empty searches in a row')
-
-                if empty_searches > empty_search_limit:
-                    # The case number should round up to the next 10k tier
-                    # and start over
+                test_response = self.tr.get(case_url, headers=BROWSER_HEADERS)
+                result_tree = lxml.html.fromstring(test_response.text)
+                if (
+                    len(result_tree.xpath(".//div[@id='objCaseDetails']/table")) > 0 or
+                    len(result_tree.xpath(".//div/table[@id='dgdCaseList']")) > 0
+                   ):
                     empty_searches = 0
-                    case_num_end = math.ceil(case_num_end / 10000) * 10000
-                    case_num_end -= 1  # ensure next case_num ends in 0
+                    print(case_number)
+                    yield case_url
 
-            # ---- END  ----
+                else:
+                    empty_searches += 1
+                    print('Nothing found in', case_number)
+                    print('There have been', empty_searches, 'empty searches in a row')
 
-            print(case_url)
-            yield case_url
-            case_num_end += 1
+                    # Reset Tor
+                    self.tr = TorRequest(proxy_port=9050, ctrl_port=9051, password=None)
+                    self.tr.reset_identity()
+
+                    if empty_searches > empty_search_limit:
+                        empty_searches = 0
+                        break
+        breakpoint()
 
     def clean_whitespace(self, text):
         return re.sub('\s+', ' ', text.text_content()).strip()
@@ -366,7 +316,7 @@ class CivilScraper:
             result_tree = lxml.html.fromstring(response.text)
 
             case_dict = {
-                'case_url': url,
+                'case_url': '',
                 'case_number': '',
                 'case_details': {},
                 'party_information': {},
@@ -375,22 +325,49 @@ class CivilScraper:
 
             case_number = url.split('NCase=')[1]
             case_number = case_number.split('&')[0]
-            case_dict['case_number'] = case_number
 
-            # Only executes if there is content on the page
+            # Account for each kind of page
             if len(result_tree.xpath(".//div[@id='objCaseDetails']/table")) > 0:
+                case_dict['case_url'] = url
+
+                case_dict['case_number'] = case_number
+
                 case_dict['case_details'] = self.get_case_details(result_tree)
                 case_dict['party_information'] = self.get_party_information(result_tree)
                 case_dict['case_activity'] = self.get_case_activity(result_tree)
                 yield case_dict
             elif len(result_tree.xpath(".//div/table[@id='dgdCaseList']")) > 0:
                 # TODO: account for multiple cases w/same case number
+
                 print('found multiple cases for same case number at:', url)
+                multi_case = result_tree.xpath(".//div/table[@id='dgdCaseList']")
+                multi_case = multi_case[0].xpath("./tr[position() >= 2]")
+
+                for i, row in enumerate(multi_case):
+                    multi_case_link = row.xpath("./td[1]/a")
+                    href = multi_case_link[0].attrib['href']
+                    multi_url = 'https://courtlink.lexisnexis.com/cookcounty/' + href
+                    response = self.tr.get(multi_url, headers=BROWSER_HEADERS)
+                    time.sleep(1+3*random.random())
+
+                    result_tree = lxml.html.fromstring(response.text)
+                    # From here we have access to each of the individual
+                    # duplicate cases
+
+                    case_dict['case_url'] = multi_url
+
+                    # This differentiates the multi cases with same number
+                    # TODO: decide if this is unproblematic
+                    case_dict['case_number'] = case_number + "-" + str(i+1)
+
+                    case_dict['case_details'] = self.get_case_details(result_tree)
+                    case_dict['party_information'] = self.get_party_information(result_tree)
+                    case_dict['case_activity'] = self.get_case_activity(result_tree)
+                    yield case_dict
+
             else:
-                print('nothing found here')
-                # Reset Tor
-                self.tr = TorRequest(proxy_port=9050, ctrl_port=9051, password=None)
-                self.tr.reset_identity()
+                print('Error: Neither of the expected tables found,')
+                print('but passed previous check.')
 
 
 scraper = CivilScraper()
