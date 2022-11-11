@@ -122,9 +122,6 @@ class CivilScraper:
         empty_searches = 0
         empty_search_limit = 25
 
-        # TODO: account for the district being a letter like L
-        # instead of just a number
-
         for case_type in self.case_types:
             base_case_num = (
                 str(year) + "-M" + case_type["district"] + "-" + case_type["type"]
