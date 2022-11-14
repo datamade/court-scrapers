@@ -1,4 +1,3 @@
-# import requests
 import lxml.html
 import mechanize
 import re
@@ -6,7 +5,6 @@ import json
 from torrequest import TorRequest
 import random
 import time
-import math
 
 BROWSER_HEADERS = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
@@ -32,7 +30,7 @@ class CivilScraper:
             {
                 "district": "2",
                 "type": "",
-                "start": 3,  # edited for testing, should be 0
+                "start": 0,
                 "end": 999999,
                 "serial_format": "%06d",
             },
@@ -115,36 +113,39 @@ class CivilScraper:
             },
         ]
 
+    def case_urls(self, year, district, case_type, start, end, serial_format):
+        base_case_num = "{year}-M{district}-{type}".format(
+            year=year, district=district, type=case_type
+        )
+
+        for serial in range(start, end + 1):
+            case_number = base_case_num + str(serial_format % (serial,))
+            case_url_template = "https://courtlink.lexisnexis.com/cookcounty/FindDock.aspx?NCase={case_number}&SearchType=0&Database=1&case_no=&PLtype=1&sname=&CDate="
+            case_url = case_url_template.format(case_number=case_number)
+            yield case_url
+
     def iterate_case_url(self, year):
-        case_url = ""
-        url_start = "https://courtlink.lexisnexis.com/cookcounty/FindDock.aspx?NCase="
-        url_end = "&SearchType=0&Database=1&case_no=&PLtype=1&sname=&CDate="
         empty_searches = 0
         empty_search_limit = 25
 
         for case_type in self.case_types:
-            base_case_num = (
-                str(year) + "-M" + case_type["district"] + "-" + case_type["type"]
-            )
-            for serial in range(case_type["start"], case_type["end"] + 1):
-                case_number = base_case_num + str(
-                    case_type["serial_format"] % (serial,)
-                )
-                case_url = url_start + case_number + url_end
 
-                test_response = self.tr.get(case_url, headers=BROWSER_HEADERS)
-                result_tree = lxml.html.fromstring(test_response.text)
+            for case_url in self.case_urls(
+                year, case_type['district'], case_type['type'],
+                case_type['start'], case_type['end'], case_type['serial_format']
+            ):
+                response = self.tr.get(case_url, headers=BROWSER_HEADERS)
+                result_tree = lxml.html.fromstring(response.text)
                 if result_tree.xpath(
                     ".//div[@id='objCaseDetails']/table"
                 ) or result_tree.xpath(".//div/table[@id='dgdCaseList']"):
                     empty_searches = 0
-                    print(case_number)
                     yield case_url
 
                 else:
                     empty_searches += 1
-                    print("Nothing found in", case_number)
-                    print("There have been", empty_searches, "empty searches in a row")
+                    print("Nothing found")
+                    print("There have been", empty_searches, "empty searches")
 
                     # Reset Tor
                     self.tr = TorRequest(proxy_port=9050, ctrl_port=9051, password=None)
@@ -153,7 +154,6 @@ class CivilScraper:
                     if empty_searches > empty_search_limit:
                         empty_searches = 0
                         break
-        breakpoint()
 
     def clean_whitespace(self, text):
         return re.sub("\s+", " ", text.text_content()).strip()
