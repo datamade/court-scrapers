@@ -1,5 +1,4 @@
 import lxml.html
-import mechanize
 import re
 import json
 from torrequest import TorRequest
@@ -120,9 +119,9 @@ class CivilScraper:
 
         for serial in range(start, end + 1):
             case_number = base_case_num + str(serial_format % (serial,))
-            case_url_template = "https://courtlink.lexisnexis.com/cookcounty/FindDock.aspx?NCase={case_number}&SearchType=0&Database=1&case_no=&PLtype=1&sname=&CDate="
-            case_url = case_url_template.format(case_number=case_number)
-            yield case_url
+            full_url_template = "https://courtlink.lexisnexis.com/cookcounty/FindDock.aspx?NCase={case_number}&SearchType=0&Database=1&case_no=&PLtype=1&sname=&CDate="
+            full_url = full_url_template.format(case_number=case_number)
+            yield full_url, case_number
 
     def iterate_case_url(self, year):
         empty_searches = 0
@@ -130,17 +129,41 @@ class CivilScraper:
 
         for case_type in self.case_types:
 
-            for case_url in self.case_urls(
+            for full_url, case_number in self.case_urls(
                 year, case_type['district'], case_type['type'],
                 case_type['start'], case_type['end'], case_type['serial_format']
             ):
-                response = self.tr.get(case_url, headers=BROWSER_HEADERS)
+                self.tr.session.cookies.clear()
+                response = self.tr.get("https://ipecho.net/plain")
+                print("Tor Ip Address", response.text)
+                response = self.tr.get(full_url, headers=BROWSER_HEADERS)
+                time.sleep(1 + 3 * random.random())
+
                 result_tree = lxml.html.fromstring(response.text)
-                if result_tree.xpath(
-                    ".//div[@id='objCaseDetails']/table"
-                ) or result_tree.xpath(".//div/table[@id='dgdCaseList']"):
+
+                if result_tree.xpath(".//div[@id='objCaseDetails']/table"):
                     empty_searches = 0
-                    yield case_url
+                    yield case_number, result_tree, full_url
+
+                elif result_tree.xpath(".//div/table[@id='dgdCaseList']"):
+                    empty_searches = 0
+
+                    print("found multiple cases for same case number at:", case_number)
+                    multi_case = result_tree.xpath(".//div/table[@id='dgdCaseList']")
+                    multi_case = multi_case[0].xpath("./tr[position() >= 2]")
+
+                    for i, row in enumerate(multi_case):
+                        # Go to each case link found
+                        multi_case_link = row.xpath("./td[1]/a")
+                        href = multi_case_link[0].attrib["href"]
+                        multi_url = "https://courtlink.lexisnexis.com/cookcounty/" + href
+                        response = self.tr.get(multi_url, headers=BROWSER_HEADERS)
+                        time.sleep(1 + 3 * random.random())
+
+                        multi_case_number = case_number + "-" + str(i + 1)
+                        result_tree = lxml.html.fromstring(response.text)
+
+                        yield multi_case_number, result_tree, multi_url
 
                 else:
                     empty_searches += 1
@@ -305,15 +328,7 @@ class CivilScraper:
 
     def scrape_year(self, year):
 
-        for url in self.iterate_case_url(year):
-            self.tr.session.cookies.clear()
-            response = self.tr.get("https://ipecho.net/plain")
-            print("Tor Ip Address", response.text)
-            response = self.tr.get(url, headers=BROWSER_HEADERS)
-            time.sleep(1 + 3 * random.random())
-
-            result_tree = lxml.html.fromstring(response.text)
-
+        for case_number, result_tree, full_url in self.iterate_case_url(year):
             case_dict = {
                 "case_url": "",
                 "case_number": "",
@@ -322,12 +337,8 @@ class CivilScraper:
                 "case_activity": [],
             }
 
-            case_number = url.split("NCase=")[1]
-            case_number = case_number.split("&")[0]
-
-            # Account for each kind of page
-            if result_tree.xpath(".//div[@id='objCaseDetails']/table"):
-                case_dict["case_url"] = url
+            try:
+                case_dict["case_url"] = full_url
                 case_dict["case_number"] = case_number
 
                 case_dict["case_details"] = self.get_case_details(
@@ -341,40 +352,9 @@ class CivilScraper:
                 )
                 yield case_dict
 
-            elif result_tree.xpath(".//div/table[@id='dgdCaseList']"):
-                print("found multiple cases for same case number at:", url)
-                multi_case = result_tree.xpath(".//div/table[@id='dgdCaseList']")
-                multi_case = multi_case[0].xpath("./tr[position() >= 2]")
-
-                for i, row in enumerate(multi_case):
-                    # Go to each case link found
-                    multi_case_link = row.xpath("./td[1]/a")
-                    href = multi_case_link[0].attrib["href"]
-                    multi_url = "https://courtlink.lexisnexis.com/cookcounty/" + href
-                    response = self.tr.get(multi_url, headers=BROWSER_HEADERS)
-                    time.sleep(1 + 3 * random.random())
-
-                    result_tree = lxml.html.fromstring(response.text)
-
-                    case_dict["case_url"] = multi_url
-
-                    # This differentiates each identically numbered case
-                    case_dict["case_number"] = case_number + "-" + str(i + 1)
-
-                    case_dict["case_details"] = self.get_case_details(
-                        result_tree
-                    )
-                    case_dict["party_information"] = self.get_party_information(
-                        result_tree
-                    )
-                    case_dict["case_activity"] = self.get_case_activity(
-                        result_tree
-                    )
-                    yield case_dict
-
-            else:
+            except Exception:
                 print("Error: Neither of the expected tables found,")
-                print("but passed previous check.")
+                print("but passed previous checks")
 
 
 scraper = CivilScraper()
