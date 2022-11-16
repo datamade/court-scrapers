@@ -1,9 +1,11 @@
-import lxml.html
-import re
 import json
-from torrequest import TorRequest
 import random
+import re
 import time
+
+import civil_divisions
+import lxml.html
+from torrequest import TorRequest
 
 BROWSER_HEADERS = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
@@ -25,92 +27,8 @@ class CivilScraper:
 
     def __init__(self):
         self.tr = TorRequest(proxy_port=9050, ctrl_port=9051, password=None)
-        self.case_types = [
-            {
-                "district": "2",
-                "type": "",
-                "start": 0,
-                "end": 999999,
-                "serial_format": "%06d",
-            },
-            {
-                "district": "3",
-                "type": "",
-                "start": 0,
-                "end": 999999,
-                "serial_format": "%06d",
-            },
-            {
-                "district": "4",
-                "type": "",
-                "start": 0,
-                "end": 999999,
-                "serial_format": "%06d",
-            },
-            {
-                "district": "5",
-                "type": "",
-                "start": 0,
-                "end": 999999,
-                "serial_format": "%06d",
-            },
-            {
-                "district": "6",
-                "type": "",
-                "start": 0,
-                "end": 999999,
-                "serial_format": "%06d",
-            },
-            {
-                "district": "1",
-                "type": "01",
-                "start": 0,
-                "end": 9999,
-                "serial_format": "%04d",
-            },
-            {
-                "district": "1",
-                "type": "04",
-                "start": 0,
-                "end": 9999,
-                "serial_format": "%04d",
-            },
-            {
-                "district": "1",
-                "type": "1",
-                "start": 0,
-                "end": 99999,
-                "serial_format": "%05d",
-            },
-            {
-                "district": "1",
-                "type": "3",
-                "start": 0,
-                "end": 99999,
-                "serial_format": "%05d",
-            },
-            {
-                "district": "1",
-                "type": "4",
-                "start": 0,
-                "end": 99999,
-                "serial_format": "%05d",
-            },
-            {
-                "district": "1",
-                "type": "5",
-                "start": 0,
-                "end": 99999,
-                "serial_format": "%05d",
-            },
-            {
-                "district": "1",
-                "type": "7",
-                "start": 0,
-                "end": 99999,
-                "serial_format": "%05d",
-            },
-        ]
+        self.tr.session.headers.update(BROWSER_HEADERS)
+        self.case_types = civil_divisions.DIVISIONS
 
     def case_urls(self, year, district, case_type, start, end, serial_format):
         base_case_num = "{year}-M{district}-{type}".format(
@@ -123,7 +41,7 @@ class CivilScraper:
             full_url = full_url_template.format(case_number=case_number)
             yield full_url, case_number
 
-    def shared_case_nums(self, result_tree):
+    def shared_case_nums(self, result_tree, case_number):
         multi_case = result_tree.xpath(".//div/table[@id='dgdCaseList']")
         multi_case = multi_case[0].xpath("./tr[position() >= 2]")
 
@@ -132,7 +50,7 @@ class CivilScraper:
             multi_case_link = row.xpath("./td[1]/a")
             href = multi_case_link[0].attrib["href"]
             multi_url = "https://courtlink.lexisnexis.com/cookcounty/" + href
-            response = self.tr.get(multi_url, headers=BROWSER_HEADERS)
+            response = self.tr.get(multi_url)
             time.sleep(1 + 3 * random.random())
 
             multi_case_number = case_number + "-" + str(i + 1)
@@ -140,30 +58,45 @@ class CivilScraper:
 
             yield multi_case_number, result_tree, multi_url
 
-    def iterate_case_url(self, year):
+    def iterate_case_url(self, year, case_types):
         empty_searches = 0
         empty_search_limit = 25
+        successful_searches = 0
+        successful_search_limit = 10
 
-        for case_type in self.case_types:
+        for case_type in case_types:
 
             for full_url, case_number in self.case_urls(
-                year, case_type['district'], case_type['type'],
-                case_type['start'], case_type['end'], case_type['serial_format']
+                year,
+                case_type["district"],
+                case_type["type"],
+                case_type["start"],
+                case_type["end"],
+                case_type["serial_format"],
             ):
-                response = self.tr.get(full_url, headers=BROWSER_HEADERS)
+                response = self.tr.get(full_url)
                 time.sleep(1 + 3 * random.random())
 
                 result_tree = lxml.html.fromstring(response.text)
 
+                if successful_searches > successful_search_limit:
+                    print(successful_searches, "successes. Changing IP")
+                    self.tr = TorRequest(proxy_port=9050, ctrl_port=9051, password=None)
+                    self.tr.reset_identity()
+                    successful_searches = 0
+
                 if result_tree.xpath(".//div[@id='objCaseDetails']/table"):
                     empty_searches = 0
+                    successful_searches += 1
+
                     yield case_number, result_tree, full_url
 
                 elif result_tree.xpath(".//div/table[@id='dgdCaseList']"):
                     empty_searches = 0
+                    successful_searches += 1
 
                     print("found multiple cases for same case number at:", case_number)
-                    yield from self.shared_case_nums(result_tree)
+                    yield from self.shared_case_nums(result_tree, case_number)
 
                 else:
                     empty_searches += 1
@@ -176,6 +109,7 @@ class CivilScraper:
 
                     if empty_searches > empty_search_limit:
                         empty_searches = 0
+                        print(case_number, "was the last result found")
                         break
 
     def clean_whitespace(self, text):
@@ -326,9 +260,19 @@ class CivilScraper:
 
         return activities_list
 
-    def scrape_year(self, year):
+    def scrape_year(self, year, district=None):
+        if district:
+            case_types = [
+                case_type
+                for case_type in self.case_types
+                if case_type["district"] == district
+            ]
+        else:
+            case_types = self.case_types
 
-        for case_number, result_tree, full_url in self.iterate_case_url(year):
+        for case_number, result_tree, full_url in self.iterate_case_url(
+            year, case_types
+        ):
             case_dict = {
                 "case_url": "",
                 "case_number": "",
@@ -341,29 +285,26 @@ class CivilScraper:
                 case_dict["case_url"] = full_url
                 case_dict["case_number"] = case_number
 
-                case_dict["case_details"] = self.get_case_details(
-                    result_tree
-                )
-                case_dict["party_information"] = self.get_party_information(
-                    result_tree
-                )
-                case_dict["case_activity"] = self.get_case_activity(
-                    result_tree
-                )
+                case_dict["case_details"] = self.get_case_details(result_tree)
+                case_dict["party_information"] = self.get_party_information(result_tree)
+                case_dict["case_activity"] = self.get_case_activity(result_tree)
                 yield case_dict
 
             except Exception:
                 print("Error: Neither of the expected tables found,")
                 print("but passed previous checks")
+                print(full_url)
+                raise
 
 
-scraper = CivilScraper()
+if __name__ == "__main__":
+    scraper = CivilScraper()
 
-for case in scraper.scrape_year(2021):
-    case_number = case["case_number"]
-    print("outputting case #:", case_number)
+    for case in scraper.scrape_year(2021):
+        case_number = case["case_number"]
+        print("outputting case #:", case_number)
 
-    file_path = f"./scrape/{case_number}.json"
-    with open(file_path, "w+") as output:
-        json.dump(case, output, sort_keys=True, indent=4)
-    print("done")
+        file_path = f"./scrape/{case_number}.json"
+        with open(file_path, "w+") as output:
+            json.dump(case, output, sort_keys=True, indent=4)
+        print("done")
