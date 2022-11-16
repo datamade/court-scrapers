@@ -123,6 +123,23 @@ class CivilScraper:
             full_url = full_url_template.format(case_number=case_number)
             yield full_url, case_number
 
+    def shared_case_nums(self, result_tree):
+        multi_case = result_tree.xpath(".//div/table[@id='dgdCaseList']")
+        multi_case = multi_case[0].xpath("./tr[position() >= 2]")
+
+        for i, row in enumerate(multi_case):
+            # Go to each case link found
+            multi_case_link = row.xpath("./td[1]/a")
+            href = multi_case_link[0].attrib["href"]
+            multi_url = "https://courtlink.lexisnexis.com/cookcounty/" + href
+            response = self.tr.get(multi_url, headers=BROWSER_HEADERS)
+            time.sleep(1 + 3 * random.random())
+
+            multi_case_number = case_number + "-" + str(i + 1)
+            result_tree = lxml.html.fromstring(response.text)
+
+            yield multi_case_number, result_tree, multi_url
+
     def iterate_case_url(self, year):
         empty_searches = 0
         empty_search_limit = 25
@@ -133,9 +150,6 @@ class CivilScraper:
                 year, case_type['district'], case_type['type'],
                 case_type['start'], case_type['end'], case_type['serial_format']
             ):
-                self.tr.session.cookies.clear()
-                response = self.tr.get("https://ipecho.net/plain")
-                print("Tor Ip Address", response.text)
                 response = self.tr.get(full_url, headers=BROWSER_HEADERS)
                 time.sleep(1 + 3 * random.random())
 
@@ -149,21 +163,7 @@ class CivilScraper:
                     empty_searches = 0
 
                     print("found multiple cases for same case number at:", case_number)
-                    multi_case = result_tree.xpath(".//div/table[@id='dgdCaseList']")
-                    multi_case = multi_case[0].xpath("./tr[position() >= 2]")
-
-                    for i, row in enumerate(multi_case):
-                        # Go to each case link found
-                        multi_case_link = row.xpath("./td[1]/a")
-                        href = multi_case_link[0].attrib["href"]
-                        multi_url = "https://courtlink.lexisnexis.com/cookcounty/" + href
-                        response = self.tr.get(multi_url, headers=BROWSER_HEADERS)
-                        time.sleep(1 + 3 * random.random())
-
-                        multi_case_number = case_number + "-" + str(i + 1)
-                        result_tree = lxml.html.fromstring(response.text)
-
-                        yield multi_case_number, result_tree, multi_url
+                    yield from self.shared_case_nums(result_tree)
 
                 else:
                     empty_searches += 1
