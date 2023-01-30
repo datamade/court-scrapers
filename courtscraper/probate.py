@@ -6,10 +6,19 @@ import json
 from dateutil.rrule import rrule, DAILY
 import lxml.html
 import requests
+from scrapelib import Scraper, FileCache
 import mechanize
 
 
-class ProbateScraper(requests.Session):
+class ProbateScraper(Scraper):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.cache_storage = FileCache("cache/probate")
+        self.cache_write_only = False
+        self.timeout = 60
+
     def get_dotnet_context(self, url):
         response = self.get(url).text
 
