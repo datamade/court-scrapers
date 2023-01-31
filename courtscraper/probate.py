@@ -126,7 +126,7 @@ class PostScraper(Scraper, PostCachingSession):
     pass
 
 
-class ProbateScraper(PostScraper):
+class BaseProbateDocketSearch(PostScraper):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -134,16 +134,84 @@ class ProbateScraper(PostScraper):
         self.cache_write_only = False
         self.requests_per_minute = 30
 
+        response = self.get(self.url)
+        tree = lxml.html.fromstring(response.text)
+
+        self.viewstate = tree.xpath("//input[@id='__VIEWSTATE']")[0].value
+        self.viewstategenerator = tree.xpath("//input[@id='__VIEWSTATEGENERATOR']")[
+            0
+        ].value
+        self.eventvalidation = tree.xpath("//input[@id='__EVENTVALIDATION']")[0].value
+
+    @property
+    def url(self):
+        raise NotImplementedError
+
     def request(self, *args, **kwargs):
         """
-        Correct the status code for cases that do not exist.
+        Correct the status code for cases that do not exist and errors.
         """
         response = super().request(*args, **kwargs)
 
         if "1/1/0001" in response.text:
             response.status_code = 404
 
+        elif "encountered an error" in response.text:
+            response.status_code = 500
+
+        elif "No Cases Found" in response.text:
+            response.status_code = 500
+
         return response
+
+    def case(self, case_year, case_code, case_number, full_case_number):
+        logging.info(f"Attempting to scrape case {full_case_number} from {self.url}")
+
+        request_body = self.get_request_body(case_year, case_code, case_number)
+        response = self.post(self.url, data=request_body)
+
+        if response.ok:
+            logging.info(f"Found case {full_case_number} at {self.url}")
+
+            result_tree = lxml.html.fromstring(response.text)
+
+            case_info = self.get_case_info(result_tree)
+            events = self.get_activities(result_tree)
+
+            case_obj = {
+                self.url: {
+                    **case_info,
+                    "events": events,
+                },
+            }
+
+            return full_case_number, case_obj
+
+        else:
+            logging.warning(
+                f"Case {full_case_number} not found at {self.url}. Skipping..."
+            )
+            return full_case_number, {}
+
+    def get_request_body(self, *args):
+        return {
+            "__VIEWSTATE": self.viewstate,
+            "__VIEWSTATEGENERATOR": self.viewstategenerator,
+            "__EVENTVALIDATION": self.eventvalidation,
+            "ctl00$MainContent$rblSearchType": "CaseNumber",
+            "ctl00$MainContent$btnSearch": "Start New Search",
+        }
+
+    def get_case_info(self):
+        raise NotImplementedError
+
+    def get_activities(self):
+        raise NotImplementedError
+
+
+class ProbateDocketSearch(BaseProbateDocketSearch):
+
+    url = "https://casesearch.cookcountyclerkofcourt.org/ProbateDocketSearch.aspx"
 
     def cache_key_suffix(self, data):
         """
@@ -158,67 +226,18 @@ class ProbateScraper(PostScraper):
                 ]
             )
 
-    def case_numbers(self, year, start=1, end=8950):
-        case_number_format = "{year}P{serial}"
+    def get_request_body(self, case_year, case_code, case_number):
+        request_body = super().get_request_body()
 
-        for serial in range(start, end + 1):
-            padded_serial = str(serial).zfill(6)
-            yield (
-                str(year),
-                "P",
-                padded_serial,
-                case_number_format.format(year=year, serial=padded_serial),
-            )
-
-    def scrape(self, url, year="2022", start=1):
-        viewstate, viewstategenerator, eventvalidation = self.get_dotnet_context(url)
-
-        # TODO: Implement method for getting max case number
-        for case_year, case_code, case_number, full_case_number in self.case_numbers(
-            year=year, start=start
-        ):
-            logging.info(f"Attempting to scrape case {full_case_number}")
-
-            request_body = {
-                "__VIEWSTATE": viewstate,
-                "__VIEWSTATEGENERATOR": viewstategenerator,
-                "__EVENTVALIDATION": eventvalidation,
-                "ctl00$MainContent$rblSearchType": "CaseNumber",
+        request_body.update(
+            {
                 "ctl00$MainContent$txtCaseYear": case_year,
                 "ctl00$MainContent$txtCaseCode": case_code,
                 "ctl00$MainContent$txtCaseNumber": case_number,
-                "ctl00$MainContent$btnSearch": "Start New Search",
             }
+        )
 
-            response = self.post(url, data=request_body)
-
-            if response.ok:
-                logging.info(f"Found case {full_case_number}")
-
-                result_tree = lxml.html.fromstring(response.text)
-
-                case_info = self.get_case_info(result_tree)
-                events = self.get_activities(result_tree)
-
-                case_obj = {
-                    **case_info,
-                    "events": events,
-                }
-
-                yield full_case_number, case_obj
-
-            else:
-                logging.warning(f"Case {full_case_number} not found. Skipping...")
-
-    def get_dotnet_context(self, url):
-        response = self.get(url).text
-
-        tree = lxml.html.fromstring(response)
-        viewstate = tree.xpath("//input[@id='__VIEWSTATE']")[0].value
-        viewstategenerator = tree.xpath("//input[@id='__VIEWSTATEGENERATOR']")[0].value
-        eventvalidation = tree.xpath("//input[@id='__EVENTVALIDATION']")[0].value
-
-        return viewstate, viewstategenerator, eventvalidation
+        return request_body
 
     def get_case_info(self, result_tree):
         (case_number,) = result_tree.xpath(
@@ -227,18 +246,14 @@ class ProbateScraper(PostScraper):
         (estate_title,) = result_tree.xpath(
             ".//td/span[@id='MainContent_lblCaseType']/../../td[1]/text()"
         )
-        (calendar,) = result_tree.xpath(
-            ".//span[@id='MainContent_lblCalendar']/text()"
-        ) or [""]
-        (division,) = result_tree.xpath(
-            ".//span[@id='MainContent_lblDivision']/text()"
-        ) or [""]
+        (calendar,) = result_tree.xpath(".//span[@id='MainContent_lblCalendar']/text()")
+        (division,) = result_tree.xpath(".//span[@id='MainContent_lblDivision']/text()")
         (filing_date,) = result_tree.xpath(
             ".//span[@id='MainContent_lblDateFiled']/text()"
-        ) or [""]
+        )
         (case_type,) = result_tree.xpath(
             ".//span[@id='MainContent_lblCaseType']/text()"
-        ) or [""]
+        )
 
         return {
             "case_number": case_number.strip(),
@@ -325,6 +340,137 @@ class ProbateScraper(PostScraper):
         return case_activities
 
 
+class ProbateDocketSearchAPI(BaseProbateDocketSearch):
+
+    url = "https://casesearch.cookcountyclerkofcourt.org/ProbateDocketSearchAPI.aspx"
+
+    def cache_key_suffix(self, data):
+        """
+        Create the full case number from the POST data.
+        """
+        return data["ctl00$MainContent$txtCaseNumber"]
+
+    def get_request_body(self, case_year, case_code, case_number):
+        request_body = super().get_request_body()
+
+        request_body.update(
+            {
+                "ctl00$MainContent$txtCaseNumber": "".join(
+                    [case_year, case_code, case_number]
+                ),
+            }
+        )
+
+        return request_body
+
+    def get_case_info(self, result_tree):
+        (case_number,) = result_tree.xpath(
+            ".//span[@id='MainContent_lblCaseNumber']/text()"
+        )
+        estate_title = [
+            party.strip()
+            for party in result_tree.xpath(
+                ".//span[@id='MainContent_lblPlaintiffs']/text()"
+            )
+        ]
+        (calendar,) = result_tree.xpath(".//span[@id='MainContent_lblCalendar']/text()")
+        (division,) = result_tree.xpath(".//span[@id='MainContent_lblDivision']/text()")
+        (filing_date,) = result_tree.xpath(
+            ".//span[@id='MainContent_lblDateFiled']/text()"
+        )
+        (case_type,) = result_tree.xpath(
+            ".//span[@id='MainContent_lblCaseType']/text()"
+        )
+        rep_minor_claimant = [
+            party.strip()
+            for party in result_tree.xpath(
+                ".//span[@id='MainContent_lblDefendants']/text()"
+            )
+        ]
+        attorney = [
+            party.strip()
+            for party in result_tree.xpath(
+                ".//span[@id='MainContent_lblAttorney']/text()"
+            )
+        ]
+
+        return {
+            "case_number": case_number.strip(),
+            "calendar": calendar.strip(),
+            "filing_date": filing_date.strip(),
+            "division": division.strip(),
+            "estate_of": estate_title,
+            "case_type": case_type.strip(),
+            "rep_minor_claimant": rep_minor_claimant,
+            "attorney": attorney,
+        }
+
+    def get_activities(self, result_tree):
+        case_activities = []
+
+        case_activity_tables = result_tree.xpath(
+            ".//h5[contains(text(), 'Case Activities')]/following-sibling::table"
+        )
+
+        for activity_table in case_activity_tables:
+            (date,) = activity_table.xpath(
+                "descendant::td[contains(text(), 'Activity Date')]/following-sibling::td[1]/text()"
+            )
+            (description,) = activity_table.xpath(
+                "descendant::td[contains(text(), 'Event Desc')]/following-sibling::td[1]/text()"
+            )
+            (comments,) = activity_table.xpath(
+                "descendant::td[contains(text(), 'Comments')]/following-sibling::td[1]/text()"
+            ) or [""]
+
+            case_activities.append(
+                {
+                    "description": description.strip(),
+                    "date": date.strip(),
+                    "comments": comments.strip(),
+                }
+            )
+
+        return case_activities
+
+
+class ProbateScraper(object):
+    def case_numbers(self, year, start=1, end=8950):
+        case_number_format = "{year}P{serial}"
+
+        # TODO: Implement method for getting max case number
+        for serial in range(start, end + 1):
+            padded_serial = str(serial).zfill(6)
+            yield (
+                str(year),
+                "P",
+                padded_serial,
+                case_number_format.format(year=year, serial=padded_serial),
+            )
+
+    def scrape(self, year="2022", start=1):
+        system_a = ProbateDocketSearch()
+        system_b = ProbateDocketSearchAPI()
+
+        for case_year, case_code, case_number, full_case_number in self.case_numbers(
+            year=year, start=start
+        ):
+
+            _, record_a = system_a.case(
+                case_year, case_code, case_number, full_case_number
+            )
+            _, record_b = system_b.case(
+                case_year, case_code, case_number, full_case_number
+            )
+
+            if any([record_a, record_b]):
+                if not all([record_a, record_b]):
+                    system = system_b.url if record_a else system_a.url
+                    logging.warning(f"Case {full_case_number} missing from {system}")
+
+                yield full_case_number, record_a | record_b
+
+
 if __name__ == "__main__":
     import argparse
     import logging
@@ -353,13 +499,12 @@ if __name__ == "__main__":
     options = parser.parse_args()
 
     scraper = ProbateScraper()
-    url = "https://casesearch.cookcountyclerkofcourt.org/ProbateDocketSearch.aspx"
 
     i = 0
 
     for year in options.years:
         for case_number, case_obj in tqdm.tqdm(
-            scraper.scrape(url, year=year, start=options.serial_start)
+            scraper.scrape(year=year, start=options.serial_start)
         ):
             file_path = f"./scrape/{case_number}.json"
             with open(file_path, "w+") as output:
