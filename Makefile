@@ -4,7 +4,7 @@ all: upload
 
 .PHONY : scrape
 scrape :
-	python courtscraper/probate.py 100
+	python courtscraper/probate.py --number_of_cases 10
 
 
 .PHONY : upload

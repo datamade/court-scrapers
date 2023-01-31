@@ -3,3 +3,4 @@ lxml
 mechanize
 requests
 tqdm
+scrapelib
