@@ -1,13 +1,11 @@
-from os.path import exists
-import datetime
-import re
 import json
+import re
 from typing import cast
 
-from dateutil.rrule import rrule, DAILY
+import html5lib
 import lxml.html
 import requests
-from scrapelib import Scraper, FileCache, CachingSession, ThrottledSession
+from scrapelib import CachingSession, FileCache, Scraper, ThrottledSession
 from scrapelib.cache import CacheResponse
 
 
@@ -173,7 +171,11 @@ class BaseProbateDocketSearch(PostScraper):
         if response.ok:
             logging.info(f"Found case {full_case_number} at {self.url}")
 
-            result_tree = lxml.html.fromstring(response.text)
+            # the html on this site has some real broken stuff in it
+            # so we need to use this alternate parser
+            result_tree = html5lib.parse(
+                response.text, treebuilder="lxml", namespaceHTMLElements=False
+            )
 
             case_info = self.get_case_info(result_tree)
             events = self.get_activities(result_tree)
@@ -409,7 +411,7 @@ class ProbateDocketSearchAPI(BaseProbateDocketSearch):
         case_activities = []
 
         case_activity_tables = result_tree.xpath(
-            ".//h5[contains(text(), 'Case Activities')]/following-sibling::table"
+            ".//h5[contains(text(), 'Case Activities')]/following-sibling::table[@class='table']"
         )
 
         for activity_table in case_activity_tables:
@@ -474,8 +476,9 @@ class ProbateScraper(object):
 if __name__ == "__main__":
     import argparse
     import logging
-    import tqdm
     import sys
+
+    import tqdm
 
     logging.basicConfig(level=logging.DEBUG)
 
