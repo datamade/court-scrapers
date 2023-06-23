@@ -3,4 +3,4 @@ lxml
 mechanize
 requests
 tqdm
-https://github.com/erdiaker/torrequest/archive/refs/heads/master.zip
+scrapelib
