@@ -8,8 +8,10 @@ import requests
 from scrapelib import CachingSession, FileCache, Scraper, ThrottledSession
 from scrapelib.cache import CacheResponse
 
+
 class NoCaseNumber(Exception):
     ...
+
 
 class PostCachingSession(CachingSession):
     def request(
@@ -186,7 +188,7 @@ class BaseProbateDocketSearch(PostScraper):
                     f"Case {full_case_number} not found at {self.url}. Skipping..."
                 )
                 return full_case_number, {}
-                
+
             events = self.get_activities(result_tree)
 
             case_obj = {
