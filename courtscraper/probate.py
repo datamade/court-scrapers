@@ -8,6 +8,8 @@ import requests
 from scrapelib import CachingSession, FileCache, Scraper, ThrottledSession
 from scrapelib.cache import CacheResponse
 
+class NoCaseNumber(Exception):
+    ...
 
 class PostCachingSession(CachingSession):
     def request(
@@ -177,7 +179,14 @@ class BaseProbateDocketSearch(PostScraper):
                 response.text, treebuilder="lxml", namespaceHTMLElements=False
             )
 
-            case_info = self.get_case_info(result_tree)
+            try:
+                case_info = self.get_case_info(result_tree)
+            except NoCaseNumber:
+                logging.warning(
+                    f"Case {full_case_number} not found at {self.url}. Skipping..."
+                )
+                return full_case_number, {}
+                
             events = self.get_activities(result_tree)
 
             case_obj = {
@@ -248,14 +257,25 @@ class ProbateDocketSearch(BaseProbateDocketSearch):
         (estate_title,) = result_tree.xpath(
             ".//td/span[@id='MainContent_lblCaseType']/../../td[1]/text()"
         )
-        (calendar,) = result_tree.xpath(".//span[@id='MainContent_lblCalendar']/text()")
+        calendar_elements = result_tree.xpath(
+            ".//span[@id='MainContent_lblCalendar']/text()"
+        )
+        if len(calendar_elements):
+            (calendar,) = calendar_elements
+        else:
+            calendar = ""
+
         (division,) = result_tree.xpath(".//span[@id='MainContent_lblDivision']/text()")
         (filing_date,) = result_tree.xpath(
             ".//span[@id='MainContent_lblDateFiled']/text()"
         )
-        (case_type,) = result_tree.xpath(
+        case_type_elements = result_tree.xpath(
             ".//span[@id='MainContent_lblCaseType']/text()"
         )
+        if len(case_type_elements):
+            (case_type,) = case_type_elements
+        else:
+            case_type = ""
 
         return {
             "case_number": case_number.strip(),
@@ -366,16 +386,26 @@ class ProbateDocketSearchAPI(BaseProbateDocketSearch):
         return request_body
 
     def get_case_info(self, result_tree):
-        (case_number,) = result_tree.xpath(
-            ".//span[@id='MainContent_lblCaseNumber']/text()"
-        )
+        try:
+            (case_number,) = result_tree.xpath(
+                ".//span[@id='MainContent_lblCaseNumber']/text()"
+            )
+        except ValueError as error:
+            raise NoCaseNumber from error
         estate_title = [
             party.strip()
             for party in result_tree.xpath(
                 ".//span[@id='MainContent_lblPlaintiffs']/text()"
             )
         ]
-        (calendar,) = result_tree.xpath(".//span[@id='MainContent_lblCalendar']/text()")
+        calendar_elements = result_tree.xpath(
+            ".//span[@id='MainContent_lblCalendar']/text()"
+        )
+        if len(calendar_elements):
+            (calendar,) = calendar_elements
+        else:
+            calendar = ""
+
         (division,) = result_tree.xpath(".//span[@id='MainContent_lblDivision']/text()")
         (filing_date,) = result_tree.xpath(
             ".//span[@id='MainContent_lblDateFiled']/text()"
