@@ -36,7 +36,9 @@ class ToScrapeSpider(Spider):
                             },
                             {
                                 "action": "evaluate",
-                                "source": f"$('#MainContent_ddlDatabase').val('1'); $('#MainContent_txtCaseNumber').val('{case_number}'); $('#MainContent_btnSearch').click();",
+                                "source": f"""$('#MainContent_ddlDatabase').val('1');
+                                              $('#MainContent_txtCaseNumber').val('{case_number}');
+                                              $('#MainContent_btnSearch').click();""",
                             },
                             {
                                 "action": "waitForSelector",
