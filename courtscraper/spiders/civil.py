@@ -1,20 +1,33 @@
 from scrapy import Request, Spider
+from scrapy.exceptions import CloseSpider
 
 
-class ToScrapeSpider(Spider):
+from scrapy.spidermiddlewares.httperror import HttpError
+
+
+class UnsuccessfulAutomation(Exception):
+    ...
+
+
+class CivilSpider(Spider):
     name = "civil"
+
+    def __init__(self, division="2", **kwargs):
+        self.case_type = DIVISIONS[division]
+        self.misses = set()
+        self.failures = set()
+        self.last_successful_case_number = None
+        super().__init__(**kwargs)
 
     def case_numbers(self, year):
 
-        for case_type in DIVISIONS:
+        base_case_num = "{year}{district}{type}{serial_format}".format(
+            year=year, **self.case_type
+        )
 
-            base_case_num = "{year}{district}{type}{serial_format}".format(
-                year=year, **case_type
-            )
-
-            for serial in range(case_type["start"], case_type["end"] + 1):
-                case_number = base_case_num % serial
-                yield case_number
+        for serial in range(self.case_type["start"], self.case_type["end"] + 1):
+            case_number = base_case_num % serial
+            yield case_number
 
     def start_requests(self):
         for case_number in self.case_numbers(2022):
@@ -51,12 +64,16 @@ class ToScrapeSpider(Spider):
                             },
                         ],
                     },
+                    "case_number": case_number,
                 },
+                errback=self.handle_error,
             )
 
     def parse(self, response):
         case_info = self.get_case_info(response)
         case_info["events"] = self.get_activities(response)
+
+        self._success(response)
 
         return case_info
 
@@ -125,90 +142,139 @@ class ToScrapeSpider(Spider):
 
         return case_activities
 
+    def handle_error(self, failure):
+        if failure.check(HttpError):
+            response = failure.value.response
+            if response.status == 404:
+                self._missing_case(response)
+            elif response.status == 500:
+                self._failing_responses(response)
+        else:
+            self.logger.error(repr(failure))
 
-DIVISIONS = [
-    {
+    def _missing_case(self, response):
+        missing_case_number = response.meta["case_number"]
+        if self.last_successful_case_number is None:
+            self.misses.add(missing_case_number)
+        elif missing_case_number > self.last_successful_case_number:
+            self.misses.add(missing_case_number)
+
+        self.logger.info(f'misses: {", ".join(sorted(self.misses))}')
+
+        if len(self.misses) > 10:
+            raise CloseSpider("run of missing case number")
+
+    def _failing_responses(self, response):
+        failing_case_number = response.meta["case_number"]
+        self.failures.add(failing_case_number)
+
+        self.logger.info(f'failures: {", ".join(sorted(self.failures))}')
+
+        if len(self.failures) > 5:
+            raise CloseSpider("run of failures")
+
+    def _success(self, response):
+        successful_case_number = response.meta["case_number"]
+
+        if self.last_successful_case_number is None:
+            self.last_successful_case_number = successful_case_number
+        elif self.last_successful_case_number < successful_case_number:
+            self.last_successful_case_number = successful_case_number
+
+        if successful_case_number == self.last_successful_case_number:
+            self.misses = {
+                case_number
+                for case_number in self.misses
+                if case_number > successful_case_number
+            }
+
+            if hasattr(response, "raw_api_response"):
+                self.failures = set()
+
+
+DIVISIONS = {
+    "2": {
         "district": "2",
         "type": "",
         "start": 0,
         "end": 999999,
         "serial_format": "%06d",
     },
-    {
+    "3": {
         "district": "3",
         "type": "",
         "start": 0,
         "end": 999999,
         "serial_format": "%06d",
     },
-    {
+    "4": {
         "district": "4",
         "type": "",
         "start": 0,
         "end": 999999,
         "serial_format": "%06d",
     },
-    {
+    "5": {
         "district": "5",
         "type": "",
         "start": 0,
         "end": 999999,
         "serial_format": "%06d",
     },
-    {
+    "6": {
         "district": "6",
         "type": "",
         "start": 0,
         "end": 999999,
         "serial_format": "%06d",
     },
-    {
+    "1,01": {
         "district": "1",
         "type": "01",
         "start": 0,
         "end": 9999,
         "serial_format": "%04d",
     },
-    {
+    "1,04": {
         "district": "1",
         "type": "04",
         "start": 0,
         "end": 9999,
         "serial_format": "%04d",
     },
-    {
+    "1,1": {
         "district": "1",
         "type": "1",
         "start": 0,
         "end": 99999,
         "serial_format": "%05d",
     },
-    {
+    "1,3": {
         "district": "1",
         "type": "3",
         "start": 0,
         "end": 99999,
         "serial_format": "%05d",
     },
-    {
+    "1,4": {
         "district": "1",
         "type": "4",
         "start": 0,
         "end": 99999,
         "serial_format": "%05d",
     },
-    {
+    "1,5": {
         "district": "1",
         "type": "5",
         "start": 0,
         "end": 99999,
         "serial_format": "%05d",
     },
-    {
+    "1,7": {
         "district": "1",
         "type": "7",
         "start": 0,
         "end": 99999,
         "serial_format": "%05d",
     },
-]
+}
