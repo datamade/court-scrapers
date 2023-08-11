@@ -159,7 +159,8 @@ class CivilSpider(Spider):
         elif missing_case_number > self.last_successful_case_number:
             self.misses.add(missing_case_number)
 
-        self.logger.info(f'misses: {", ".join(sorted(self.misses))}')
+        if self.misses:
+            self.logger.info(f'misses: {", ".join(sorted(self.misses))}')
 
         if len(self.misses) > 10:
             raise CloseSpider("run of missing case number")
@@ -228,49 +229,49 @@ DIVISIONS = {
         "end": 999999,
         "serial_format": "%06d",
     },
-    "1,01": {
+    "101": {
         "district": "1",
         "type": "01",
         "start": 0,
         "end": 9999,
         "serial_format": "%04d",
     },
-    "1,04": {
+    "104": {
         "district": "1",
         "type": "04",
         "start": 0,
         "end": 9999,
         "serial_format": "%04d",
     },
-    "1,1": {
+    "11": {
         "district": "1",
         "type": "1",
         "start": 0,
         "end": 99999,
         "serial_format": "%05d",
     },
-    "1,3": {
+    "13": {
         "district": "1",
         "type": "3",
         "start": 0,
         "end": 99999,
         "serial_format": "%05d",
     },
-    "1,4": {
+    "14": {
         "district": "1",
         "type": "4",
         "start": 0,
         "end": 99999,
         "serial_format": "%05d",
     },
-    "1,5": {
+    "15": {
         "district": "1",
         "type": "5",
         "start": 0,
         "end": 99999,
         "serial_format": "%05d",
     },
-    "1,7": {
+    "17": {
         "district": "1",
         "type": "7",
         "start": 0,
