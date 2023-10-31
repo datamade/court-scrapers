@@ -12,8 +12,9 @@ class UnsuccessfulAutomation(Exception):
 class CivilSpider(Spider):
     name = "civil"
 
-    def __init__(self, division="2", **kwargs):
+    def __init__(self, division="2", year=2022, **kwargs):
         self.case_type = DIVISIONS[division]
+        self.year = year
         self.misses = set()
         self.failures = set()
         self.last_successful_case_number = None
@@ -30,7 +31,7 @@ class CivilSpider(Spider):
             yield case_number
 
     def start_requests(self):
-        for case_number in self.case_numbers(2022):
+        for case_number in self.case_numbers(self.year):
             yield Request(
                 "https://casesearch.cookcountyclerkofcourt.org/CivilCaseSearchAPI.aspx",
                 meta={
@@ -140,7 +141,7 @@ class CivilSpider(Spider):
                 }
             )
 
-        return case_activities
+        return case_activities[::-1]
 
     def handle_error(self, failure):
         if failure.check(HttpError):
@@ -162,7 +163,8 @@ class CivilSpider(Spider):
         if self.misses:
             self.logger.info(f'misses: {", ".join(sorted(self.misses))}')
 
-        if len(self.misses) > 10:
+        if len(self.misses) > 50:
+            breakpoint()
             raise CloseSpider("run of missing case number")
 
     def _failing_responses(self, response):
@@ -171,7 +173,7 @@ class CivilSpider(Spider):
 
         self.logger.info(f'failures: {", ".join(sorted(self.failures))}')
 
-        if len(self.failures) > 5:
+        if len(self.failures) > 20:
             raise CloseSpider("run of failures")
 
     def _success(self, response):
@@ -274,7 +276,9 @@ DIVISIONS = {
     "17": {
         "district": "1",
         "type": "7",
-        "start": 0,
+        "start": 12430,
+        # "start": 4750,  # most eviction cases are sealed from March 9,
+        #                # 2020, to March 31, 2022
         "end": 99999,
         "serial_format": "%05d",
     },

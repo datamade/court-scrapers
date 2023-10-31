@@ -14,8 +14,8 @@ civil.zip : civil.db
 civil.db : attorney.csv defendant.csv plaintiff.csv court_case.csv event.csv
 	csvs-to-sqlite $^ $@
 	cat scripts/foreign_key.sql | sqlite3 $@
-	sqlite-utils convert $@ court_case \
-            case_number 'value[4:7]' --output subdivision
+	sqlite-utils add-column $@ court_case subdivision text
+	sqlite3 $@ < scripts/subdivision.sql
 	sqlite-utils transform $@ court_case \
             --drop _key \
             --pk case_number \
@@ -72,18 +72,20 @@ court_case_raw.attorney.csv court_case_raw.defendant.csv court_case_raw.plaintif
             --path /*/defendants/:table:defendant \
             --path /*/attorneys/:table:attorney
 
-civil.json : 2022_civil.jl
-	jq --slurp '.' $< > $@
+civil.json : 2022_civil.jl 2023_civil.jl
+	cat $^ | sort | python scripts/remove_dupe_cases.py | jq --slurp '.' > $@
 
-2022_civil.jl : 2022_civil-2.jl 2022_civil-3.jl 2022_civil-4.jl		\
-                2022_civil-5.jl 2022_civil-6.jl 2022_civil-101.jl	\
-                2022_civil-104.jl 2022_civil-11.jl 2022_civil-13.jl	\
-                2022_civil-14.jl 2022_civil-15.jl 2022_civil-17.jl
+%_civil.jl : %_civil-2.jl %_civil-3.jl %_civil-4.jl %_civil-5.jl	\
+             %_civil-6.jl %_civil-101.jl %_civil-104.jl %_civil-11.jl	\
+             %_civil-13.jl %_civil-14.jl %_civil-15.jl %_civil-17.jl
 	cat $^ > $@
 
 
 2022_civil-%.jl :
-	 scrapy crawl civil -a division=$* -O $@
+	 scrapy crawl civil -a division=$* -a year=2022 -O $@
+
+2023_civil-%.jl :
+	 scrapy crawl civil -a division=$* -a year=2023 -O $@
 
 .PHONY : upload
 upload : 2022_civil.json
