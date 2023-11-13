@@ -1,9 +1,12 @@
 from abc import ABC, abstractmethod
+from operator import itemgetter
 from datetime import datetime, timezone
 
 from scrapy import Spider
 from scrapy.exceptions import CloseSpider
 from scrapy.spidermiddlewares.httperror import HttpError
+
+from scripts.hash import dict_hash
 
 
 class UnsuccessfulAutomation(Exception):
@@ -35,10 +38,50 @@ class CourtSpiderBase(ABC, Spider):
     def parse(self, response):
         case_info = self.get_case_info(response)
         case_info["events"] = self.get_activities(response)
+        case_info.update(
+            {
+                "closed": self.is_closed(case_info["events"]),
+                "court": self.name,
+                "last_activity_date": self.get_last_activity_date(case_info["events"]),
+            }
+        )
+        case_info["hash"] = dict_hash(case_info)
+        case_info["last_scraped"] = datetime.now(tz=timezone.utc)
 
         self._success(response)
 
         return case_info
+
+    def is_closed(self, events):
+        """
+        Try to figure out whether the cases is closed, i.e. we don't expect
+        it to be updated moving forward.
+        """
+
+        keywords = (
+            "dismiss",
+            # "judgement",
+            # "settle",
+        )
+        for event in events:
+            events_contain_keywords = any(
+                k in event["description"].lower() for k in keywords
+            )
+            if events_contain_keywords:
+                return True
+
+        return False
+
+    def get_last_activity_date(self, events):
+        if not events:
+            return None
+
+        event_dates = map(itemgetter("date"), events)
+        sorted_dates = sorted(
+            event_dates, key=lambda d: datetime.strptime(d, "%m/%m/%Y")
+        )
+
+        return sorted_dates[0]
 
     def get_case_info(self, response):
         case_number = response.xpath(
@@ -75,8 +118,6 @@ class CourtSpiderBase(ABC, Spider):
             "plaintiffs": [plaintiff.strip() for plaintiff in plaintiffs],
             "defendants": [defendant.strip() for defendant in defendants],
             "attorneys": [attorney.strip() for attorney in attorneys],
-            "court": self.name,
-            "last_scraped": datetime.now(tz=timezone.utc),
         }
 
     def get_activities(self, response):
