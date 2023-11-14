@@ -11,7 +11,7 @@ class ChancerySpider(CourtSpiderBase):
         self.case_type = CASE_FORMAT
         super().__init__(**kwargs)
 
-    def case_numbers(self, year):
+    def get_case_numbers(self, year):
         base_case_num = "{year}CH{serial_format}".format(year=year, **self.case_type)
 
         for serial in range(self.case_type["start"], self.case_type["end"] + 1):

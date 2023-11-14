@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from operator import itemgetter
 from datetime import datetime, timezone
 
 from scrapy import Spider
@@ -14,11 +13,17 @@ class UnsuccessfulAutomation(Exception):
 
 
 class CourtSpiderBase(ABC, Spider):
-    def __init__(self, division="2", year=2022, **kwargs):
+    def __init__(self, division="2", year=2022, case_numbers_file=None, **kwargs):
         self.year = year
         self.misses = set()
         self.failures = set()
-        self.last_successful_case_number = None
+        self.update = bool(case_numbers_file)
+
+        if case_numbers_file:
+            self.case_numbers = self.case_numbers_from_file(case_numbers_file)
+        else:
+            self.case_numbers = self.get_case_numbers(self.year)
+
         super().__init__(**kwargs)
 
     @property
@@ -35,53 +40,32 @@ class CourtSpiderBase(ABC, Spider):
     def start_requests(self):
         pass
 
+    @abstractmethod
+    def get_case_numbers(self):
+        pass
+
+    def case_numbers_from_file(self, filename):
+        with open(filename) as f:
+            for case_number in f:
+                yield case_number
+
     def parse(self, response):
+        now = datetime.now(tz=timezone.utc).isoformat()
+
         case_info = self.get_case_info(response)
-        case_info["events"] = self.get_activities(response)
         case_info.update(
             {
-                "closed": self.is_closed(case_info["events"]),
+                "events": self.get_activities(response),
                 "court": self.name,
-                "last_activity_date": self.get_last_activity_date(case_info["events"]),
+                "updated_at": None if self.update else now,
+                "scraped_at": now,
             }
         )
         case_info["hash"] = dict_hash(case_info)
-        case_info["last_scraped"] = datetime.now(tz=timezone.utc)
 
         self._success(response)
 
         return case_info
-
-    def is_closed(self, events):
-        """
-        Try to figure out whether the cases is closed, i.e. we don't expect
-        it to be updated moving forward.
-        """
-
-        keywords = (
-            "dismiss",
-            # "judgement",
-            # "settle",
-        )
-        for event in events:
-            events_contain_keywords = any(
-                k in event["description"].lower() for k in keywords
-            )
-            if events_contain_keywords:
-                return True
-
-        return False
-
-    def get_last_activity_date(self, events):
-        if not events:
-            return None
-
-        event_dates = map(itemgetter("date"), events)
-        sorted_dates = sorted(
-            event_dates, key=lambda d: datetime.strptime(d, "%m/%d/%Y"), reverse=True
-        )
-
-        return sorted_dates[0]
 
     def get_case_info(self, response):
         case_number = response.xpath(

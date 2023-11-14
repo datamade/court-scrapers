@@ -9,13 +9,10 @@ class CivilSpider(CourtSpiderBase):
 
     def __init__(self, division="2", year=2022, **kwargs):
         self.case_type = DIVISIONS[division]
-        self.year = year
-        self.misses = set()
-        self.failures = set()
         super().__init__(**kwargs)
 
     def start_requests(self):
-        for case_number in self.case_numbers(self.year):
+        for case_number in self.case_numbers:
             yield Request(
                 CivilSpider.url,
                 meta={
@@ -54,7 +51,7 @@ class CivilSpider(CourtSpiderBase):
                 errback=self.handle_error,
             )
 
-    def case_numbers(self, year):
+    def get_case_numbers(self, year):
         base_case_num = "{year}{district}{type}{serial_format}".format(
             year=year, **self.case_type
         )

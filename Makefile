@@ -1,6 +1,10 @@
 .PHONY: all
 all: upload
 
+.PHONY: clean
+clean:
+	rm *.jl *.json *.db
+
 cases.zip : cases.db
 	- rm -rf cases_csv
 	mkdir cases_csv
@@ -56,8 +60,25 @@ cases.db : attorney.csv defendant.csv plaintiff.csv court_case.csv event.csv
 	sqlite-utils convert $@ court_case filing_date 'r.parsedate(value)'
 	sqlite-utils convert $@ event date 'r.parsedate(value)'
 
-re_scrape.csv : nlrb.db
-	sqlite3 nlrb.db -init scripts/to_scrape.sql -bail 2>error > $@
+.PHONY : update_civil_db
+update_civil_db : rescraped_civil_cases.csv
+	tail -n +2 $< | sqlite3 cases.db -init scripts/update.sql -bail
+
+.PHONY : update_chancery_db
+update_chancery_db : rescraped_chancery_cases.csv
+	tail -n +2 $< | sqlite3 cases.db -init scripts/update.sql -bail
+
+rescraped_civil_cases.csv : to_rescrape.civil.csv
+	 scrapy crawl civil -a update=True -a case_numbers_file=$< -O $@
+
+rescraped_chancery_cases.csv : to_rescrape.chancery.csv
+	 scrapy crawl chancery -a update=True -a case_numbers_file=$< -O $@
+
+to_rescrape.civil.csv : cases.db
+	sqlite3 cases.db < scripts/to_scrape.sql > $@
+
+to_rescrape.chancery.csv : cases.db
+	sqlite3 cases.db < scripts/to_scrape.sql > $@
 
 %.csv: court_case_raw.%.csv
 	cat $< | \
@@ -75,19 +96,23 @@ court_case_raw.attorney.csv court_case_raw.defendant.csv court_case_raw.plaintif
             --path /*/defendants/:table:defendant \
             --path /*/attorneys/:table:attorney
 
-cases.json : 2022_civil.jl 2023_civil.jl 2022_chancery.jl 2023_chancery.jl
+# cases.json : 2022_civil.jl 2023_civil.jl 2022_chancery.jl 2023_chancery.jl
+cases.json : 2022_civil.jl
 	cat $^ | sort | python scripts/remove_dupe_cases.py | jq --slurp '.' > $@
 
-%_civil.jl : %_civil-2.jl %_civil-3.jl %_civil-4.jl %_civil-5.jl	\
-             %_civil-6.jl %_civil-101.jl %_civil-104.jl %_civil-11.jl	\
-             %_civil-13.jl %_civil-14.jl %_civil-15.jl %_civil-17.jl
+%_civil.jl : %_civil-2.jl
 	cat $^ > $@
 
+# %_civil.jl : %_civil-2.jl %_civil-3.jl %_civil-4.jl %_civil-5.jl	\
+#              %_civil-6.jl %_civil-101.jl %_civil-104.jl %_civil-11.jl	\
+#              %_civil-13.jl %_civil-14.jl %_civil-15.jl %_civil-17.jl
+# 	cat $^ > $@
+
 2022_chancery-%.jl :
-	 scrapy crawl civil -a year=2022 -O $@
+	 scrapy crawl chancery -a year=2022 -O $@
 
 2023_chancery-%.jl :
-	 scrapy crawl civil -a year=2023 -O $@
+	 scrapy crawl chancery -a year=2023 -O $@
 
 2022_civil-%.jl :
 	 scrapy crawl civil -a division=$* -a year=2022 -O $@
