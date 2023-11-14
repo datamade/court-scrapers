@@ -75,10 +75,10 @@ rescraped_chancery_cases.csv : to_rescrape.chancery.csv
 	 scrapy crawl chancery -a update=True -a case_numbers_file=$< -O $@
 
 to_rescrape.civil.csv : cases.db
-	sqlite3 cases.db < scripts/to_scrape.sql > $@
+	sqlite3 cases.db < scripts/to_scrape.civil.sql > $@
 
 to_rescrape.chancery.csv : cases.db
-	sqlite3 cases.db < scripts/to_scrape.sql > $@
+	sqlite3 cases.db < scripts/to_scrape.chancery.sql > $@
 
 %.csv: court_case_raw.%.csv
 	cat $< | \
