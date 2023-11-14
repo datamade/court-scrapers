@@ -56,6 +56,9 @@ cases.db : attorney.csv defendant.csv plaintiff.csv court_case.csv event.csv
 	sqlite-utils convert $@ court_case filing_date 'r.parsedate(value)'
 	sqlite-utils convert $@ event date 'r.parsedate(value)'
 
+re_scrape.csv : nlrb.db
+	sqlite3 nlrb.db -init scripts/to_scrape.sql -bail 2>error > $@
+
 %.csv: court_case_raw.%.csv
 	cat $< | \
            sed '1s/court_case_raw\._key/case_number/g' | \
@@ -72,17 +75,13 @@ court_case_raw.attorney.csv court_case_raw.defendant.csv court_case_raw.plaintif
             --path /*/defendants/:table:defendant \
             --path /*/attorneys/:table:attorney
 
-# cases.json : 2022_civil.jl 2023_civil.jl 2022_chancery.jl 2023_chancery.jl
-cases.json : 2022_civil.jl
+cases.json : 2022_civil.jl 2023_civil.jl 2022_chancery.jl 2023_chancery.jl
 	cat $^ | sort | python scripts/remove_dupe_cases.py | jq --slurp '.' > $@
 
-%_civil.jl : %_civil-2.jl
+%_civil.jl : %_civil-2.jl %_civil-3.jl %_civil-4.jl %_civil-5.jl	\
+             %_civil-6.jl %_civil-101.jl %_civil-104.jl %_civil-11.jl	\
+             %_civil-13.jl %_civil-14.jl %_civil-15.jl %_civil-17.jl
 	cat $^ > $@
-
-# %_civil.jl : %_civil-2.jl %_civil-3.jl %_civil-4.jl %_civil-5.jl	\
-#              %_civil-6.jl %_civil-101.jl %_civil-104.jl %_civil-11.jl	\
-#              %_civil-13.jl %_civil-14.jl %_civil-15.jl %_civil-17.jl
-# 	cat $^ > $@
 
 2022_chancery-%.jl :
 	 scrapy crawl civil -a year=2022 -O $@
