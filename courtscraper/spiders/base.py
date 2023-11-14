@@ -78,7 +78,7 @@ class CourtSpiderBase(ABC, Spider):
 
         event_dates = map(itemgetter("date"), events)
         sorted_dates = sorted(
-            event_dates, key=lambda d: datetime.strptime(d, "%m/%m/%Y")
+            event_dates, key=lambda d: datetime.strptime(d, "%m/%d/%Y"), reverse=True
         )
 
         return sorted_dates[0]
