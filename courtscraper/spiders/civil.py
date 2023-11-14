@@ -12,7 +12,6 @@ class CivilSpider(CourtSpiderBase):
         self.year = year
         self.misses = set()
         self.failures = set()
-        self.last_successful_case_number = None
         super().__init__(**kwargs)
 
     def start_requests(self):
@@ -54,14 +53,6 @@ class CivilSpider(CourtSpiderBase):
                 },
                 errback=self.handle_error,
             )
-
-    def parse(self, response):
-        case_info = self.get_case_info(response)
-        case_info["events"] = self.get_activities(response)
-
-        self._success(response)
-
-        return case_info
 
     def case_numbers(self, year):
         base_case_num = "{year}{district}{type}{serial_format}".format(
