@@ -99,9 +99,6 @@ court_case_raw.attorney.csv court_case_raw.defendant.csv court_case_raw.plaintif
 cases.json : 2022_civil.jl 2023_civil.jl 2022_chancery.jl 2023_chancery.jl
 	cat $^ | sort | python scripts/remove_dupe_cases.py | jq --slurp '.' > $@
 
-%_civil.jl : %_civil-2.jl
-	cat $^ > $@
-
 %_civil.jl : %_civil-2.jl %_civil-3.jl %_civil-4.jl %_civil-5.jl	\
              %_civil-6.jl %_civil-101.jl %_civil-104.jl %_civil-11.jl	\
              %_civil-13.jl %_civil-14.jl %_civil-15.jl %_civil-17.jl
