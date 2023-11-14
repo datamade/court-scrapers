@@ -19,7 +19,7 @@ class ChancerySpider(CourtSpiderBase):
             yield case_number
 
     def start_requests(self):
-        for case_number in self.case_numbers(self.year):
+        for case_number in self.case_numbers:
             yield Request(
                 ChancerySpider.url,
                 meta={

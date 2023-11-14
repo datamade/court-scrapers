@@ -17,6 +17,7 @@ class CourtSpiderBase(ABC, Spider):
         self.year = year
         self.misses = set()
         self.failures = set()
+        self.last_successful_case_number = None
         self.update = bool(case_numbers_file)
 
         if case_numbers_file:

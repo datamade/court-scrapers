@@ -104,10 +104,10 @@ cases.json : 2022_civil.jl 2023_civil.jl 2022_chancery.jl 2023_chancery.jl
              %_civil-13.jl %_civil-14.jl %_civil-15.jl %_civil-17.jl
 	cat $^ > $@
 
-2022_chancery-%.jl :
+2022_chancery.jl :
 	 scrapy crawl chancery -a year=2022 -O $@
 
-2023_chancery-%.jl :
+2023_chancery.jl :
 	 scrapy crawl chancery -a year=2023 -O $@
 
 2022_civil-%.jl :
