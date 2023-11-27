@@ -4,19 +4,20 @@
 WITH
 overall_rate AS (
     SELECT
-        count(*) / sum(julianday(scraped_at) - julianday(updated_at)) AS rate,
+        sum(
+            1 / (julianday(last_checked_at) - julianday(updated_at))
+        ) / count(*) FILTER (
+            WHERE julianday(last_checked_at) > julianday(updated_at)
+        ) AS rate,
         3 AS prior_weight
     FROM court_case
 )
 
 SELECT case_number
 FROM court_case
-INNER JOIN overall_rate as o ON 1 = 1
+INNER JOIN overall_rate ON 1 = 1
 WHERE court = "civil"
 ORDER BY
-    -(
-        (prior_weight + 1)
-        / (prior_weight / rate + julianday(scraped_at) - julianday(updated_at))
-    )
-    * (julianday('now') - julianday(scraped_at)) ASC
+    ((prior_weight + 1) / (prior_weight / rate + julianday(last_checked_at) - julianday(updated_at)))
+    * (julianday('now') - julianday(last_checked_at)) DESC
 LIMIT 3000;
