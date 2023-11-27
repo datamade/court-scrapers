@@ -17,7 +17,7 @@ repos:
       - id: flake8
         args: [--config=.flake8]
 
-  # - repo: https://github.com/sqlfluff/sqlfluff
-  #   rev: 2.3.5
-  #   hooks:
-  #   -   id: sqlfluff-lint
+  - repo: https://github.com/sqlfluff/sqlfluff
+    rev: 2.3.5
+    hooks:
+    -   id: sqlfluff-lint

@@ -2,7 +2,7 @@
 
 # Supported dialects https://docs.sqlfluff.com/en/stable/dialects.html
 # Or run 'sqlfluff dialects'
-dialect = snowflake
+dialect = sqlite
 
 # One of [raw|jinja|python|placeholder]
 templater = jinja
@@ -17,7 +17,7 @@ exclude_rules = ambiguous.column_count, structure.column_order
 # other tools and several style guides. Many projects however prefer
 # something a little longer.
 # Set to zero or negative to disable checks.
-max_line_length = 120
+max_line_length = 80
 
 # CPU processes to use while linting.
 # The default is "single threaded" to allow easy debugging, but this
