@@ -1,5 +1,11 @@
 # Data files
 scrape/*.json
+*.csv
+*.jl
+*.db
+
+# Perl
+*.pl
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
