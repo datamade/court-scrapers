@@ -80,10 +80,17 @@ jobs:
           heroku_email: ${{ secrets.HEROKU_EMAIL }}
           justlogin: true
 
+      - name: Get hashed Datasette password
+        run: |
+          # Store hash as an environment variable
+          hash=$(echo "${{ secrets.DATASETTE_INSTANCE_PW }}" \
+              | datasette hash-password --no-confirm); \
+            echo "hash=$hash" >> $GITHUB_ENV
+
       - name: Deploy Datasette instance to Heroku
         run: |
           datasette publish heroku cases.db \
               -n court-scraper \
               -m metadata.json \
               --install datasette-auth-passwords \
-              --plugin-secret datasette-auth-passwords root_password_hash ${{ secrets.DATASETTE_INSTANCE_PW }}
+              --plugin-secret datasette-auth-passwords root_password_hash ${{ env.hash }}
