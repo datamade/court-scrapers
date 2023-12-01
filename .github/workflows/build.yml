@@ -59,7 +59,6 @@ jobs:
         with:
           tag: "nightly"
           fileName: "*.db.zip"
-          outFilePath: "assets"
 
       - name: Test ls
         run: |
@@ -67,7 +66,7 @@ jobs:
 
       - name: Decrypt database
         run: |
-          unzip -P ${{ secrets.CASE_DB_PW }} assets/cases.db.zip
+          unzip -P ${{ secrets.CASE_DB_PW }} cases.db.zip
 
       - name: Deploy Datasette instance to Heroku
         run: |
