@@ -97,4 +97,4 @@ jobs:
               -n court-scraper \
               -m metadata.json \
               --install datasette-auth-passwords \
-              --plugin-secret datasette-auth-passwords root_password_hash "${{ env.hash }}"
+              --plugin-secret datasette-auth-passwords root_password_hash '${{ env.hash }}'
