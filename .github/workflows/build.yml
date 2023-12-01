@@ -64,6 +64,10 @@ jobs:
         run: |
           unzip -P "${{ secrets.CASE_DB_PW }}" cases.db.zip
 
+      - name: Install heroku-builds plugin
+        run: |
+          heroku plugins:install heroku-builds
+
       - name: Login to Heroku CLI
         uses: akhileshns/heroku-deploy@v3.12.14
         with:
