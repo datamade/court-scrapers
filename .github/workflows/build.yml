@@ -48,6 +48,10 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
+
+    env:
+      HEROKU_ORGANIZATION: ${{ secrets.HEROKU_ORG }}
+
     steps:
       - uses: actions/checkout@v3
 
