@@ -60,6 +60,9 @@ jobs:
           tag: "nightly"
           fileName: "*.db.zip"
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+
       - name: Decrypt database
         run: |
           unzip -P ${{ secrets.CASE_DB_PW }} cases.db.zip
