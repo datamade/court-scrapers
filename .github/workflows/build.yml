@@ -61,6 +61,10 @@ jobs:
           fileName: "*.db.zip"
           outFilePath: "assets"
 
+      - name: Test ls
+        run: |
+          ls
+
       - name: Decrypt database
         run: |
           unzip -P ${{ secrets.CASE_DB_PW }} assets/cases.db.zip
