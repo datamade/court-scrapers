@@ -1,29 +1,16 @@
-# This is a basic workflow to help you get started with Actions
-
 name: Full case scrape
 
-# concurrency:
-#   group: database-build
-
-
-# Controls when the action will run.
 on:
   schedule:
     - cron:  '15 4 * * *'
 
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Set current date as env variable
         run: echo "BEGIN_COURTS_RUN=$(date +'%s')" >> $GITHUB_ENV
       - uses: actions/checkout@v2
@@ -48,13 +35,13 @@ jobs:
       - name: Release
         uses: WebFreak001/deploy-nightly@v3.0.0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # automatically provided by github actions
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: https://uploads.github.com/repos/datamade/court-scrapers/releases/131985702/assets{?name,label}
           release_id: 131985702
-          asset_path: ./cases.db.zip # path to archive to upload
-          asset_name: cases.db.zip # name to upload the release as, use $$ to insert date (YYYYMMDD) and 6 letter commit hash
+          asset_path: ./cases.db.zip
+          asset_name: cases.db.zip
           asset_content_type: application/zip # required by GitHub API
-          max_releases: 7 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted
+          max_releases: 7
       - name: keepalive
         uses: gautamkrishnar/keepalive-workflow@v1
