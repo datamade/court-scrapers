@@ -1,8 +1,10 @@
 # Data files
 scrape/*.json
+cases.zip
 *.csv
 *.jl
 *.db
+*.json
 
 # Perl
 *.pl
