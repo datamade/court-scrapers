@@ -80,6 +80,10 @@ jobs:
           heroku_email: ${{ secrets.HEROKU_EMAIL }}
           justlogin: true
 
+      - name: Install Datasette plugins
+        run: |
+          datasette install datasette-auth-passwords datasette-auth-tokens
+
       - name: Get hashed Datasette password
         run: |
           # Store hash as an environment variable
