@@ -56,8 +56,9 @@ jobs:
 
       - name: Download latest database zip
         uses: robinraju/release-downloader@v1.8
-        tag: "nightly"
-        fileName: "*.db.zip"
+        with:
+          tag: "nightly"
+          fileName: "*.db.zip"
 
       - name: Decrypt database
         run: |
