@@ -60,21 +60,19 @@ jobs:
           tag: "nightly"
           fileName: "*.db.zip"
 
-      - name: Test ls
-        run: |
-          ls
-
       - name: Decrypt database
         run: |
           unzip -P "${{ secrets.CASE_DB_PW }}" cases.db.zip
 
-      - name: Deploy Datasette instance to Heroku
+      - name: Login to Heroku CLI
         uses: akhileshns/heroku-deploy@v3.12.14
         with:
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
           heroku_app_name: ""
           heroku_email: ${{ secrets.HEROKU_EMAIL }}
           justlogin: true
+
+      - name: Deploy Datasette instance to Heroku
         run: |
           datasette publish heroku cases.db \
               -n court-scraper \
