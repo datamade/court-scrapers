@@ -66,7 +66,7 @@ jobs:
 
       - name: Decrypt database
         run: |
-          unzip -P ${{ secrets.CASE_DB_PW }} cases.db.zip
+          unzip -P "${{ secrets.CASE_DB_PW }}" cases.db.zip
 
       - name: Deploy Datasette instance to Heroku
         run: |
