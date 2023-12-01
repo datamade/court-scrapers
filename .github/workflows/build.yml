@@ -69,6 +69,12 @@ jobs:
           unzip -P "${{ secrets.CASE_DB_PW }}" cases.db.zip
 
       - name: Deploy Datasette instance to Heroku
+        uses: akhileshns/heroku-deploy@v3.12.14
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: ""
+          heroku_email: ${{ secrets.HEROKU_EMAIL }}
+          justlogin: true
         run: |
           datasette publish heroku cases.db \
               -n court-scraper \
