@@ -60,26 +60,6 @@ cases.db : attorney.csv defendant.csv plaintiff.csv court_case.csv event.csv
 	sqlite-utils convert $@ court_case filing_date 'r.parsedate(value)'
 	sqlite-utils convert $@ event date 'r.parsedate(value)'
 
-.PHONY : update_civil_db
-update_civil_db : rescraped_civil_cases.csv
-	tail -n +2 $< | sqlite3 cases.db -init scripts/update.sql -bail
-
-.PHONY : update_chancery_db
-update_chancery_db : rescraped_chancery_cases.csv
-	tail -n +2 $< | sqlite3 cases.db -init scripts/update.sql -bail
-
-rescraped_civil_cases.csv : to_rescrape.civil.csv
-	 scrapy crawl civil -a update=True -a case_numbers_file=$< -O $@
-
-rescraped_chancery_cases.csv : to_rescrape.chancery.csv
-	 scrapy crawl chancery -a update=True -a case_numbers_file=$< -O $@
-
-to_rescrape.civil.csv : cases.db
-	sqlite3 cases.db < scripts/to_scrape.civil.sql > $@
-
-to_rescrape.chancery.csv : cases.db
-	sqlite3 cases.db < scripts/to_scrape.chancery.sql > $@
-
 %.csv: court_case_raw.%.csv
 	cat $< | \
            sed '1s/court_case_raw\._key/case_number/g' | \

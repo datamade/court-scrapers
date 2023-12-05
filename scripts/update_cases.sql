@@ -7,15 +7,12 @@ CREATE TEMPORARY TABLE raw_case (
     court text,
     division text,
     filing_date text,
-    hash text,
-    scraped_at text,
-    updated_at text
+    hash text
 );
 
 .mode csv -- noqa
 .import /dev/stdin raw_case -- noqa
 
--- Update cases that have changed (i.e. their hashes are different)
 UPDATE court_case
 SET
     calendar = raw_case.calendar,
@@ -25,15 +22,14 @@ SET
     ad_damnum = raw_case.ad_damnum,
     court = raw_case.court,
     hash = raw_case.hash,
-    scraped_at = raw_case.scraped_at,
-    updated_at = raw_case.scraped_at
+    scraped_at = datetime('now'),
+    updated_at = datetime('now')
 FROM raw_case
 WHERE
-    court_case.case_number = raw_case.case_number AND court_case.hash != raw_case.hash;
+    court_case.case_number = raw_case.case_number;
 
 -- For cases that haven't changed, just update their scraped_at field
 UPDATE court_case
-SET scraped_at = raw_case.scraped_at
-FROM raw_case
+SET scraped_at = datetime('now')
 WHERE
-    court_case.case_number = raw_case.case_number AND court_case.hash = raw_case.hash;
+    court_case.case_number NOT IN (SELECT raw_case.case_number from raw_case);

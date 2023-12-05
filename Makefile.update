@@ -1,0 +1,43 @@
+.PHONY : update_%
+update_db : update_cases update_plaintiffs update_defendants update_events update_attorneys
+
+update_%: %_to_update.csv
+	cat $< | sqlite3 cases.db -init scripts/update_$*.sql -bail
+
+# Filter for the rows in each table that we need to update
+%_to_update.csv: to_update.csv rescraped_%.csv
+	grep -f $^ > $@ || touch %_to_update.csv
+
+# Get a list of case numbers that have been updated
+to_update.csv: rescraped_cases.csv
+	cat $< | sqlite3 cases.db -init scripts/to_update.sql -bail > $@
+
+rescraped_events.csv: rescraped_cases.json
+	cat $< | jq -r '.[] | .events[] + {case_number} | [.description, .date, .comments, .case_number] | @csv' > $@
+
+rescraped_attorneys.csv: rescraped_cases.json
+	cat $^ | jq '.[] | . as $$p | .attorneys[] | [., $$p.case_number] | @csv' -r > $@
+
+rescraped_plaintiffs.csv: rescraped_cases.json
+	cat $< | jq '.[] | . as $$p | .plaintiffs[] | [., $$p.case_number] | @csv' -r > $@
+
+rescraped_defendants.csv: rescraped_cases.json
+	cat $^ | jq '.[] | . as $$p | .defendants[] | [., $$p.case_number] | @csv' -r > $@
+
+rescraped_cases.csv: rescraped_cases.json
+	cat $^ | jq '.[] | [.ad_damnum, .calendar, .case_number, .case_type, .court, .division, .filing_date, .hash] | @csv' -r > $@
+
+rescraped_cases.json: rescraped_chancery_cases.jl rescraped_civil_cases.jl
+	cat $^ | jq --slurp '.' > $@
+
+rescraped_civil_cases.jl : to_rescrape.civil.csv
+	 scrapy crawl civil -a case_numbers_file=$< -O $@
+
+rescraped_chancery_cases.jl : to_rescrape.chancery.csv
+	 scrapy crawl chancery -a case_numbers_file=$< -O $@
+
+to_rescrape.civil.csv : cases.db
+	sqlite3 cases.db < scripts/to_scrape.civil.sql > $@
+
+to_rescrape.chancery.csv : cases.db
+	sqlite3 cases.db < scripts/to_scrape.chancery.sql > $@
