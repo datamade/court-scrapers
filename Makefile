@@ -30,6 +30,10 @@ cases.db : attorney.csv defendant.csv plaintiff.csv court_case.csv event.csv
             --column-order case_type \
             --column-order calendar \
             --column-order ad_damnum
+	sqlite-utils add-column $@ court_case scraped_at text \
+	    --not-null-default 'CURRENT_TIMESTAMP'
+	sqlite-utils add-column $@ court_case updated_at text \
+ 	    --not-null-default 'CURRENT_TIMESTAMP'
 	sqlite-utils add-foreign-keys $@ \
             attorney case_number court_case case_number \
             defendant case_number court_case case_number \
