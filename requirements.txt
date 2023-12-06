@@ -1,3 +1,6 @@
 scrapy
 scrapy-zyte-api
-
+datasette
+csvs-to-sqlite
+sqlite-utils
+csvkit
