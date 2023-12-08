@@ -67,17 +67,17 @@ court_case_raw.attorney.csv court_case_raw.defendant.csv court_case_raw.plaintif
             --path /*/defendants/:table:defendant \
             --path /*/attorneys/:table:attorney
 
-# rescraped_cases.json: rescraped_chancery_cases.jl rescraped_civil_cases.jl
-# 	cat $^ | jq --slurp '.' > $@
-#
-# rescraped_civil_cases.jl : to_rescrape.civil.csv
-# 	 scrapy crawl civil -a case_numbers_file=$< -O $@
-#
-# rescraped_chancery_cases.jl : to_rescrape.chancery.csv
-# 	 scrapy crawl chancery -a case_numbers_file=$< -O $@
-#
-# to_rescrape.civil.csv : cases.db
-# 	sqlite3 cases.db < scripts/to_scrape.civil.sql > $@
-#
-# to_rescrape.chancery.csv : cases.db
-# 	sqlite3 cases.db < scripts/to_scrape.chancery.sql > $@
+rescraped_cases.json: rescraped_chancery_cases.jl rescraped_civil_cases.jl
+	cat $^ | jq --slurp '.' > $@
+
+rescraped_civil_cases.jl : to_rescrape.civil.csv
+	 scrapy crawl civil -a case_numbers_file=$< -O $@
+
+rescraped_chancery_cases.jl : to_rescrape.chancery.csv
+	 scrapy crawl chancery -a case_numbers_file=$< -O $@
+
+to_rescrape.civil.csv : cases.db
+	sqlite3 cases.db < scripts/to_scrape.civil.sql > $@
+
+to_rescrape.chancery.csv : cases.db
+	sqlite3 cases.db < scripts/to_scrape.chancery.sql > $@
