@@ -77,6 +77,7 @@ instance/
 
 # Scrapy stuff:
 .scrapy
+error
 
 # Sphinx documentation
 docs/_build/

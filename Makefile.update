@@ -1,43 +1,83 @@
-.PHONY : update_%
-update_db : update_cases update_plaintiffs update_defendants update_events update_attorneys
+# Makefile for re-scraping cases and updating the case database
 
-update_%: %_to_update.csv
-	cat $< | sqlite3 cases.db -init scripts/update_$*.sql -bail
+.INTERMEDIATE: rescraped_cases.db
 
-# Filter for the rows in each table that we need to update
-%_to_update.csv: to_update.csv rescraped_%.csv
-	grep -f $^ > $@ || touch %_to_update.csv
+.PHONY : update_db
+update_db: rescraped_cases.db cases.db
+	sqlite3 $< < scripts/update_rescraped_cases.sql
 
-# Get a list of case numbers that have been updated
-to_update.csv: rescraped_cases.csv
-	cat $< | sqlite3 cases.db -init scripts/to_update.sql -bail > $@
+rescraped_cases.db : attorney.csv defendant.csv plaintiff.csv court_case.csv event.csv
+	csvs-to-sqlite $^ $@
+	cat scripts/foreign_key.sql | sqlite3 $@
+	sqlite-utils add-column $@ court_case subdivision text
+	sqlite3 $@ < scripts/subdivision.sql
+	sqlite-utils transform $@ court_case \
+            --drop _key \
+            --pk case_number \
+            --column-order case_number \
+            --column-order filing_date \
+            --column-order division \
+            --column-order subdivision \
+            --column-order case_type \
+            --column-order calendar \
+            --column-order ad_damnum
+	sqlite-utils add-foreign-keys $@ \
+            attorney case_number court_case case_number \
+            defendant case_number court_case case_number \
+            plaintiff case_number court_case case_number \
+            event case_number court_case case_number
+	sqlite-utils transform $@ defendant \
+            --rename _key order \
+            --column-order case_number \
+            --column-order order \
+            --column-order defendant
+	sqlite-utils transform $@ attorney \
+            --rename _key order \
+            --column-order case_number \
+            --column-order order \
+            --column-order attorney
+	sqlite-utils transform $@ event \
+            --rename _key order \
+            --column-order case_number \
+            --column-order order \
+            --column-order date \
+            --column-order description \
+            --column-order comments
+	sqlite-utils transform $@ plaintiff \
+            --rename _key order \
+            --column-order case_number \
+            --column-order order \
+            --column-order plaintiff
+	sqlite-utils convert $@ court_case filing_date 'r.parsedate(value)'
+	sqlite-utils convert $@ event date 'r.parsedate(value)'
 
-rescraped_events.csv: rescraped_cases.json
-	cat $< | jq -r '.[] | .events[] + {case_number} | [.description, .date, .comments, .case_number] | @csv' > $@
+%.csv: court_case_raw.%.csv
+	cat $< | \
+           sed '1s/court_case_raw\._key/case_number/g' | \
+           sed -r '1s/[a-z0-9_]+\.//g' > $@
 
-rescraped_attorneys.csv: rescraped_cases.json
-	cat $^ | jq '.[] | . as $$p | .attorneys[] | [., $$p.case_number] | @csv' -r > $@
+court_case.csv : court_case_raw.csv
+	cat $< | sed -r '1s/[a-z0-9_]+\.//g' > $@
 
-rescraped_plaintiffs.csv: rescraped_cases.json
-	cat $< | jq '.[] | . as $$p | .plaintiffs[] | [., $$p.case_number] | @csv' -r > $@
+court_case_raw.attorney.csv court_case_raw.defendant.csv court_case_raw.plaintiff.csv court_case_raw.csv court_case_raw.event.csv : rescraped_cases.json
+	perl json-to-multicsv.pl --file $< \
+            --path /:table:court_case_raw \
+            --path /*/events/:table:event \
+            --path /*/plaintiffs/:table:plaintiff \
+            --path /*/defendants/:table:defendant \
+            --path /*/attorneys/:table:attorney
 
-rescraped_defendants.csv: rescraped_cases.json
-	cat $^ | jq '.[] | . as $$p | .defendants[] | [., $$p.case_number] | @csv' -r > $@
-
-rescraped_cases.csv: rescraped_cases.json
-	cat $^ | jq '.[] | [.ad_damnum, .calendar, .case_number, .case_type, .court, .division, .filing_date, .hash] | @csv' -r > $@
-
-rescraped_cases.json: rescraped_chancery_cases.jl rescraped_civil_cases.jl
-	cat $^ | jq --slurp '.' > $@
-
-rescraped_civil_cases.jl : to_rescrape.civil.csv
-	 scrapy crawl civil -a case_numbers_file=$< -O $@
-
-rescraped_chancery_cases.jl : to_rescrape.chancery.csv
-	 scrapy crawl chancery -a case_numbers_file=$< -O $@
-
-to_rescrape.civil.csv : cases.db
-	sqlite3 cases.db < scripts/to_scrape.civil.sql > $@
-
-to_rescrape.chancery.csv : cases.db
-	sqlite3 cases.db < scripts/to_scrape.chancery.sql > $@
+# rescraped_cases.json: rescraped_chancery_cases.jl rescraped_civil_cases.jl
+# 	cat $^ | jq --slurp '.' > $@
+#
+# rescraped_civil_cases.jl : to_rescrape.civil.csv
+# 	 scrapy crawl civil -a case_numbers_file=$< -O $@
+#
+# rescraped_chancery_cases.jl : to_rescrape.chancery.csv
+# 	 scrapy crawl chancery -a case_numbers_file=$< -O $@
+#
+# to_rescrape.civil.csv : cases.db
+# 	sqlite3 cases.db < scripts/to_scrape.civil.sql > $@
+#
+# to_rescrape.chancery.csv : cases.db
+# 	sqlite3 cases.db < scripts/to_scrape.chancery.sql > $@
