@@ -18,7 +18,7 @@ overall_rate AS (
 SELECT court_case.case_number
 FROM court_case
 INNER JOIN overall_rate ON 1 = 1
-WHERE court_case.court = 'civil'
+WHERE court_case.court = :court -- noqa
 ORDER BY
     (
         (overall_rate.prior_weight + 1)
