@@ -48,21 +48,28 @@ class CourtSpiderBase(ABC, Spider):
     def case_numbers_from_file(self, filename):
         with open(filename) as f:
             for case_number in f:
-                yield case_number
+                yield case_number.strip()
 
     def parse(self, response):
-        now = datetime.now(tz=timezone.utc).isoformat()
-
         case_info = self.get_case_info(response)
         case_info.update(
             {
                 "events": self.get_activities(response),
                 "court": self.name,
-                "updated_at": None if self.update else now,
-                "scraped_at": now,
             }
         )
         case_info["hash"] = dict_hash(case_info)
+
+        # When scraping for a case for the first time, we
+        # need to set up the updated_at and scraped_at fields
+        if not self.update:
+            now = datetime.now(tz=timezone.utc).isoformat()
+            case_info.update(
+                {
+                    "updated_at": now,
+                    "scraped_at": now,
+                }
+            )
 
         self._success(response)
 

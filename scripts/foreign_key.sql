@@ -1,7 +1,4 @@
 UPDATE plaintiff SET case_number = court_case.case_number
-
-
-
 FROM court_case
 WHERE plaintiff.case_number = court_case._key;
 

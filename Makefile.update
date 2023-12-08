@@ -1,21 +1,12 @@
-.PHONY: all
-all: upload
+# Makefile for re-scraping cases and updating the case database
 
-.PHONY: clean
-clean:
-	rm *.jl *.json *.db
+.INTERMEDIATE: rescraped_cases.db
 
-cases.zip : cases.db
-	- rm -rf cases_csv
-	mkdir cases_csv
-	echo "select * from court_case" | sqlite3 -csv -header cases.db > cases_csv/court_case.csv
-	echo "select * from plaintiff" | sqlite3 -csv -header cases.db > cases_csv/plaintiff.csv
-	echo "select * from defendant" | sqlite3 -csv -header cases.db > cases_csv/defendant.csv
-	echo "select * from attorney" | sqlite3 -csv -header cases.db > cases_csv/attorney.csv
-	echo "select * from event" | sqlite3 -csv -header cases.db > cases_csv/event.csv
-	zip -r $@ cases_csv
+.PHONY : update_db
+update_db: rescraped_cases.db cases.db
+	sqlite3 $< < scripts/update_rescraped_cases.sql
 
-cases.db : attorney.csv defendant.csv plaintiff.csv court_case.csv event.csv
+rescraped_cases.db : attorney.csv defendant.csv plaintiff.csv court_case.csv event.csv
 	csvs-to-sqlite $^ $@
 	cat scripts/foreign_key.sql | sqlite3 $@
 	sqlite-utils add-column $@ court_case subdivision text
@@ -68,7 +59,7 @@ cases.db : attorney.csv defendant.csv plaintiff.csv court_case.csv event.csv
 court_case.csv : court_case_raw.csv
 	cat $< | sed -r '1s/[a-z0-9_]+\.//g' > $@
 
-court_case_raw.attorney.csv court_case_raw.defendant.csv court_case_raw.plaintiff.csv court_case_raw.csv court_case_raw.event.csv : cases.json
+court_case_raw.attorney.csv court_case_raw.defendant.csv court_case_raw.plaintiff.csv court_case_raw.csv court_case_raw.event.csv : rescraped_cases.json
 	perl json-to-multicsv.pl --file $< \
             --path /:table:court_case_raw \
             --path /*/events/:table:event \
@@ -76,26 +67,19 @@ court_case_raw.attorney.csv court_case_raw.defendant.csv court_case_raw.plaintif
             --path /*/defendants/:table:defendant \
             --path /*/attorneys/:table:attorney
 
-cases.json : 2022_civil.jl 2023_civil.jl 2022_chancery.jl 2023_chancery.jl
-	cat $^ | sort | python scripts/remove_dupe_cases.py | jq --slurp '.' > $@
+rescraped_cases.json: rescraped_chancery_cases.jl rescraped_civil_cases.jl
+	cat $^ | jq --slurp '.' > $@
 
-%_civil.jl : %_civil-2.jl %_civil-3.jl %_civil-4.jl %_civil-5.jl	\
-             %_civil-6.jl %_civil-101.jl %_civil-104.jl %_civil-11.jl	\
-             %_civil-13.jl %_civil-14.jl %_civil-15.jl %_civil-17.jl
-	cat $^ > $@
+rescraped_civil_cases.jl : to_rescrape.civil.csv
+	 scrapy crawl civil -a case_numbers_file=$< -O $@
 
-2022_chancery.jl :
-	 scrapy crawl chancery -a year=2022 -O $@
+rescraped_chancery_cases.jl : to_rescrape.chancery.csv
+	 scrapy crawl chancery -a case_numbers_file=$< -O $@
 
-2023_chancery.jl :
-	 scrapy crawl chancery -a year=2023 -O $@
+TO_SCRAPE_QUERY=$(shell tail -n +6 scripts/to_scrape.sql)
 
-2022_civil-%.jl :
-	 scrapy crawl civil -a division=$* -a year=2022 -O $@
+to_rescrape.civil.csv : cases.db
+	sqlite-utils query --csv --no-headers $< "$(TO_SCRAPE_QUERY)" -p court civil > $@
 
-2023_civil-%.jl :
-	 scrapy crawl civil -a division=$* -a year=2023 -O $@
-
-.PHONY : upload
-upload : 2022_civil.json
-	python scripts/upload_scrapes.py
+to_rescrape.chancery.csv : cases.db
+	sqlite-utils query --csv --no-headers $< "$(TO_SCRAPE_QUERY)" -p court chancery > $@
