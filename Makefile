@@ -62,7 +62,7 @@ cases.json : 2022_civil.jl 2023_civil.jl 2022_chancery.jl 2023_chancery.jl
 	 scrapy crawl civil -a division=$* -a year=2023 -O $@
 
 cases.db :
-	if [ ! -f /tmp/foo.txt ]; then sqlite3 $@ < scripts/initialize_db.sql;
+	sqlite3 $@ < scripts/initialize_db.sql
 
 .PHONY : upload
 upload : 2022_civil.json
