@@ -27,6 +27,9 @@ max_line_length = 80
 # e.g. -1 means use all processors but one. 0 means all cpus.
 processes = -1
 
+[sqlfluff:rules:references.keywords]
+ignore_words = date
+
 # If using the dbt templater, we recommend setting the project dir.
 [sqlfluff:templater:dbt]
 project_dir = ./
