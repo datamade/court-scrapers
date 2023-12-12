@@ -20,7 +20,7 @@ class CourtSpiderBase(ABC, Spider):
         self.failures = set()
         self.last_successful_case_number = None
         self.update = bool(case_numbers_file)
-        self.start = start
+        self.start = int(start)
 
         if case_numbers_file:
             self.case_numbers = self.case_numbers_from_file(case_numbers_file)

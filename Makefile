@@ -23,6 +23,7 @@ cases.zip : $(DB)
 get_new_records: import_new_cases import_new_attorneys import_new_events import_new_plaintiffs import_new_defendants set_subdivisions
 
 .PHONY: set_subdivisions
+set_subdivisions: $(DB)
 	sqlite3 $(DB) < scripts/subdivision.sql
 
 .PHONY: import_new_%

@@ -14,7 +14,7 @@ WITH serials AS (
     FROM
         court_case
     WHERE
-        court = 'chancery' -- Only consider the current year
+        court = 'chancery'
         AND substr(case_number, 1, 4) = strftime('%Y', current_timestamp)
 )
 
@@ -24,4 +24,4 @@ FROM
 ORDER BY
     -serial
 LIMIT
-    1
+    1;

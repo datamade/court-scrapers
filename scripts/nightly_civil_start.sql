@@ -14,7 +14,7 @@ WITH serials AS (
         court_case
     WHERE
         court = 'civil'
-        AND subdivision = "2" -- Only consider the current year
+        AND subdivision = ':subdivision'
         AND substr(case_number, 1, 4) = strftime('%Y', current_timestamp)
 )
 
