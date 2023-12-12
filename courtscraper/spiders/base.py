@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from datetime import datetime, timezone
 
 from scrapy import Spider
 from scrapy.exceptions import CloseSpider
@@ -59,17 +58,6 @@ class CourtSpiderBase(ABC, Spider):
             }
         )
         case_info["hash"] = dict_hash(case_info)
-
-        # When scraping for a case for the first time, we
-        # need to set up the updated_at and scraped_at fields
-        if not self.update:
-            now = datetime.now(tz=timezone.utc).isoformat()
-            case_info.update(
-                {
-                    "updated_at": now,
-                    "scraped_at": now,
-                }
-            )
 
         self._success(response)
 
