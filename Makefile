@@ -1,13 +1,11 @@
 DB=cases.db
 
-.INTERMEDIATE: *.csv *.jl *.json
-
 .PHONY: all
 all: upload
 
 .PHONY: clean
 clean:
-	rm $(DB) *.csv *.jl *.json
+	rm *.csv *.jl *.json
 
 cases.zip : $(DB)
 	- rm -rf cases_csv
@@ -56,10 +54,12 @@ CIVIL_SCRAPE_START_QUERY=$(shell tail -n +2 scripts/nightly_civil_start.sql)
 civil-%.jl: $(DB)
 	START=$$(sqlite-utils query --csv --no-headers $(DB) \
 	      "$(CIVIL_SCRAPE_START_QUERY)" -p subdivision $*); \
+				echo $$START; \
 	      scrapy crawl civil -a division=$* -a start=$$START -O $@;
 
 chancery.jl: $(DB)
 	START=$$(sqlite3 $(DB) < scripts/nightly_chancery_start.sql); \
+				echo $$START; \
 	      scrapy crawl chancery -a start=$$START -O $@;
 
 cases.db :
