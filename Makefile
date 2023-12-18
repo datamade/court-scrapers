@@ -53,7 +53,7 @@ CIVIL_SCRAPE_START_QUERY=$(shell tail -n +2 scripts/nightly_civil_start.sql)
 
 civil-%.jl: $(DB)
 	START=$$(sqlite-utils query --csv --no-headers $(DB) \
-	      '$(CIVIL_SCRAPE_START_QUERY)' -p subdivision $*); \
+	      "$(CIVIL_SCRAPE_START_QUERY)" -p subdivision $*); \
 				echo $$START; \
 	      scrapy crawl civil -a division=$* -a start=$$START -O $@;
 
