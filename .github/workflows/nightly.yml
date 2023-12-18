@@ -35,9 +35,15 @@ jobs:
         run: |
           unzip -P '${{ secrets.CASE_DB_PW }}' cases.db.zip
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+
       - name: Run scrape
+        env:
+          SCRAPY_SETTINGS_MODULE: "courtscraper.settings"
         run: |
           echo $BEGIN_COURTS_RUN
+          echo PYTHONPATH="courtscraper" >> $GITHUB_ENV
           make get_new_records
 
       - name: Setup database for upload
