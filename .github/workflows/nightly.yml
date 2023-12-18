@@ -31,7 +31,7 @@ jobs:
 
       - name: Decrypt database
         run: |
-          unzip -P "${{ secrets.CASE_DB_PW }}" cases.db.zip
+          unzip -P '${{ secrets.CASE_DB_PW }}' cases.db.zip
 
       - name: Run scrape
         run: |
@@ -40,7 +40,7 @@ jobs:
 
       - name: Setup database for upload
         run: |
-          zip -p ${{ secrets.CASE_DB_PW }} cases.db.zip cases.db
+          zip -p '${{ secrets.CASE_DB_PW }}' cases.db.zip cases.db
 
       - name: Upload new release
         uses: WebFreak001/deploy-nightly@v3.0.0
@@ -79,7 +79,7 @@ jobs:
 
       - name: Decrypt database
         run: |
-          unzip -P "${{ secrets.CASE_DB_PW }}" cases.db.zip
+          unzip -P '${{ secrets.CASE_DB_PW }}' cases.db.zip
 
       - name: Install heroku-builds plugin
         run: |
@@ -100,7 +100,7 @@ jobs:
       - name: Get hashed Datasette password
         run: |
           # Store hash as an environment variable
-          hash=$(echo "${{ secrets.DATASETTE_INSTANCE_PW }}" \
+          hash=$(echo '${{ secrets.DATASETTE_INSTANCE_PW }}' \
               | datasette hash-password --no-confirm); \
             echo "hash=$hash" >> $GITHUB_ENV
 
