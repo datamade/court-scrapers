@@ -8,6 +8,7 @@ on:
 
 jobs:
   scrape:
+    name: Scrape new cases
     runs-on: ubuntu-latest
 
     steps:
@@ -34,6 +35,7 @@ jobs:
       - name: Decrypt database
         run: |
           unzip -P '${{ secrets.CASE_DB_PW }}' cases.db.zip
+          rm cases.db.zip
 
       - name: Run scrape
         run: |
