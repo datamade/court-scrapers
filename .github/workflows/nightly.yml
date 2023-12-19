@@ -34,8 +34,7 @@ jobs:
 
       - name: Decrypt database
         run: |
-          unzip -P '${{ secrets.CASE_DB_PW }}' cases.db.zip
-          rm cases.db.zip
+          unzip -P '${{ secrets.CASE_DB_PW }}' cases.db.zip && rm cases.db.zip
 
       - name: Run scrape
         run: |
@@ -45,6 +44,9 @@ jobs:
       - name: Setup database for upload
         run: |
           zip -p '${{ secrets.CASE_DB_PW }}' cases.db.zip cases.db
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
 
       - name: Upload new release
         uses: WebFreak001/deploy-nightly@v3.0.0
