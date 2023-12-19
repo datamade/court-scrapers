@@ -4,3 +4,4 @@ datasette
 csvs-to-sqlite
 sqlite-utils
 csvkit
+sqlean.py
