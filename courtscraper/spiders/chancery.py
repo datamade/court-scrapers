@@ -20,11 +20,7 @@ class ChancerySpider(CourtSpiderBase):
             yield case_number
 
     def start_requests(self):
-        count = 0
         for case_number in self.case_numbers:
-            if count > 10:
-                break
-            count += 1
             yield Request(
                 ChancerySpider.url,
                 meta={
