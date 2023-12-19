@@ -14,9 +14,7 @@ WITH serials AS (
         court_case
     WHERE
         court = 'civil'
-        -- noqa: disable=all
-        AND subdivision = :subdivision
-        -- noqa: enable=all
+        AND subdivision = :subdivision /* noqa */
         AND substr(case_number, 1, 4) = strftime('%Y', current_timestamp)
 )
 
