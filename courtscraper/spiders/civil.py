@@ -56,7 +56,8 @@ class CivilSpider(CourtSpiderBase):
             year=year, **self.case_type
         )
 
-        for serial in range(self.case_type["start"], self.case_type["end"] + 1):
+        start = self.start or self.case_type["start"]
+        for serial in range(start + 1, self.case_type["end"] + 1):
             case_number = base_case_num % serial
             yield case_number
 

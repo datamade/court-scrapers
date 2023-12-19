@@ -1,9 +1,11 @@
+.INTERMEDIATE: *.csv *.jl *.json
+
 .PHONY: all
 all: upload
 
 .PHONY: clean
 clean:
-	rm *.jl *.json *.db
+	rm *.csv *.jl *.json
 
 cases.zip : cases.db
 	- rm -rf cases_csv
@@ -15,86 +17,51 @@ cases.zip : cases.db
 	echo "select * from event" | sqlite3 -csv -header cases.db > cases_csv/event.csv
 	zip -r $@ cases_csv
 
-cases.db : attorney.csv defendant.csv plaintiff.csv court_case.csv event.csv
-	csvs-to-sqlite $^ $@
-	cat scripts/foreign_key.sql | sqlite3 $@
-	sqlite-utils add-column $@ court_case subdivision text
-	sqlite3 $@ < scripts/subdivision.sql
-	sqlite-utils transform $@ court_case \
-            --drop _key \
-            --pk case_number \
-            --column-order case_number \
-            --column-order filing_date \
-            --column-order division \
-            --column-order subdivision \
-            --column-order case_type \
-            --column-order calendar \
-            --column-order ad_damnum
-	sqlite-utils add-foreign-keys $@ \
-            attorney case_number court_case case_number \
-            defendant case_number court_case case_number \
-            plaintiff case_number court_case case_number \
-            event case_number court_case case_number
-	sqlite-utils transform $@ defendant \
-            --rename _key order \
-            --column-order case_number \
-            --column-order order \
-            --column-order defendant
-	sqlite-utils transform $@ attorney \
-            --rename _key order \
-            --column-order case_number \
-            --column-order order \
-            --column-order attorney
-	sqlite-utils transform $@ event \
-            --rename _key order \
-            --column-order case_number \
-            --column-order order \
-            --column-order date \
-            --column-order description \
-            --column-order comments
-	sqlite-utils transform $@ plaintiff \
-            --rename _key order \
-            --column-order case_number \
-            --column-order order \
-            --column-order plaintiff
-	sqlite-utils convert $@ court_case filing_date 'r.parsedate(value)'
-	sqlite-utils convert $@ event date 'r.parsedate(value)'
+.PHONY: get_new_records
+get_new_records: import_new_cases import_new_attorneys import_new_events import_new_plaintiffs import_new_defendants set_subdivisions
 
-%.csv: court_case_raw.%.csv
-	cat $< | \
-           sed '1s/court_case_raw\._key/case_number/g' | \
-           sed -r '1s/[a-z0-9_]+\.//g' > $@
+.PHONY: set_subdivisions
+set_subdivisions: cases.db
+	sqlite3 cases.db < scripts/subdivision.sql
 
-court_case.csv : court_case_raw.csv
-	cat $< | sed -r '1s/[a-z0-9_]+\.//g' > $@
+.PHONY: import_new_%
+import_new_%: new_%.csv cases.db
+	cat $< | sqlite3 cases.db -init scripts/new_$*.sql -bail
 
-court_case_raw.attorney.csv court_case_raw.defendant.csv court_case_raw.plaintiff.csv court_case_raw.csv court_case_raw.event.csv : cases.json
-	perl json-to-multicsv.pl --file $< \
-            --path /:table:court_case_raw \
-            --path /*/events/:table:event \
-            --path /*/plaintiffs/:table:plaintiff \
-            --path /*/defendants/:table:defendant \
-            --path /*/attorneys/:table:attorney
+new_cases.csv: cases.json
+	cat $^ | jq '.[] | [.ad_damnum, .calendar, .case_number, .case_type, .court, .division, .filing_date, .hash] | @csv' -r > $@
 
-cases.json : 2022_civil.jl 2023_civil.jl 2022_chancery.jl 2023_chancery.jl
+new_attorneys.csv: cases.json
+	cat $^ | jq '.[] | . as $$p | .attorneys[] | [., $$p.case_number] | @csv' -r > $@
+
+new_events.csv: cases.json
+	cat $< | jq -r '.[] | .events[] + {case_number} | [.description, .date, .comments, .case_number] | @csv' > $@
+
+new_plaintiffs.csv: cases.json
+	cat $< | jq '.[] | . as $$p | .plaintiffs[] | [., $$p.case_number] | @csv' -r > $@
+
+new_defendants.csv: cases.json
+	cat $^ | jq '.[] | . as $$p | .defendants[] | [., $$p.case_number] | @csv' -r > $@
+
+cases.json : civil-2.jl civil-3.jl civil-4.jl civil-5.jl	\
+             civil-6.jl civil-101.jl civil-104.jl civil-11.jl	\
+             civil-13.jl civil-14.jl civil-15.jl civil-17.jl chancery.jl
 	cat $^ | sort | python scripts/remove_dupe_cases.py | jq --slurp '.' > $@
 
-%_civil.jl : %_civil-2.jl %_civil-3.jl %_civil-4.jl %_civil-5.jl	\
-             %_civil-6.jl %_civil-101.jl %_civil-104.jl %_civil-11.jl	\
-             %_civil-13.jl %_civil-14.jl %_civil-15.jl %_civil-17.jl
-	cat $^ > $@
+# Query parameterized by civil case subdivision
+CIVIL_SCRAPE_START_QUERY=$(shell tail -n +2 scripts/nightly_civil_start.sql)
 
-2022_chancery.jl :
-	 scrapy crawl chancery -a year=2022 -O $@
+civil-%.jl: cases.db
+	START=$$(sqlite-utils query --csv --no-headers cases.db \
+	      "$(CIVIL_SCRAPE_START_QUERY)" -p subdivision $*); \
+	      scrapy crawl civil -a division=$* -a start=$$START -O $@;
 
-2023_chancery.jl :
-	 scrapy crawl chancery -a year=2023 -O $@
+chancery.jl: cases.db
+	START=$$(sqlite3 cases.db < scripts/nightly_chancery_start.sql); \
+	      scrapy crawl chancery -a start=$$START -O $@;
 
-2022_civil-%.jl :
-	 scrapy crawl civil -a division=$* -a year=2022 -O $@
-
-2023_civil-%.jl :
-	 scrapy crawl civil -a division=$* -a year=2023 -O $@
+cases.db :
+	sqlite3 $@ < scripts/initialize_db.sql
 
 .PHONY : upload
 upload : 2022_civil.json

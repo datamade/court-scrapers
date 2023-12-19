@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from datetime import datetime, timezone
 
 from scrapy import Spider
 from scrapy.exceptions import CloseSpider
@@ -13,12 +12,15 @@ class UnsuccessfulAutomation(Exception):
 
 
 class CourtSpiderBase(ABC, Spider):
-    def __init__(self, division="2", year=2022, case_numbers_file=None, **kwargs):
+    def __init__(
+        self, division="2", year=2022, start=0, case_numbers_file=None, **kwargs
+    ):
         self.year = year
         self.misses = set()
         self.failures = set()
         self.last_successful_case_number = None
         self.update = bool(case_numbers_file)
+        self.start = int(start)
 
         if case_numbers_file:
             self.case_numbers = self.case_numbers_from_file(case_numbers_file)
@@ -59,17 +61,6 @@ class CourtSpiderBase(ABC, Spider):
             }
         )
         case_info["hash"] = dict_hash(case_info)
-
-        # When scraping for a case for the first time, we
-        # need to set up the updated_at and scraped_at fields
-        if not self.update:
-            now = datetime.now(tz=timezone.utc).isoformat()
-            case_info.update(
-                {
-                    "updated_at": now,
-                    "scraped_at": now,
-                }
-            )
 
         self._success(response)
 
