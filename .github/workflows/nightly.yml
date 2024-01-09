@@ -2,8 +2,8 @@ name: Nightly case scrape
 
 on:
   workflow_dispatch:
-  # schedule:
-  #   - cron:  '15 4 * * *'
+  schedule:
+     - cron: '15 4 * * *'
 
 jobs:
   scrape:
