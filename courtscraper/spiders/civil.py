@@ -7,7 +7,7 @@ class CivilSpider(CourtSpiderBase):
     name = "civil"
     url = "https://casesearch.cookcountyclerkofcourt.org/CivilCaseSearchAPI.aspx"
 
-    def __init__(self, division="2", year=2023, **kwargs):
+    def __init__(self, division="2", **kwargs):
         self.case_type = DIVISIONS[division]
         super().__init__(**kwargs)
 

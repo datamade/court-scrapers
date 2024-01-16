@@ -7,7 +7,7 @@ class ChancerySpider(CourtSpiderBase):
     name = "chancery"
     url = "https://casesearch.cookcountyclerkofcourt.org/CivilCaseSearchAPI.aspx"
 
-    def __init__(self, year=2023, **kwargs):
+    def __init__(self, **kwargs):
         self.case_type = CASE_FORMAT
         super().__init__(**kwargs)
 
