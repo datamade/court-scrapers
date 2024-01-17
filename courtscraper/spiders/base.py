@@ -13,7 +13,7 @@ class UnsuccessfulAutomation(Exception):
 
 class CourtSpiderBase(ABC, Spider):
     def __init__(
-        self, division="2", year=2023, start=0, case_numbers_file=None, **kwargs
+        self, division="2", year=2024, start=0, case_numbers_file=None, **kwargs
     ):
         self.year = year
         self.misses = set()
