@@ -6,7 +6,9 @@ CREATE TEMPORARY TABLE raw_case (
     court text,
     division text,
     filing_date text,
-    hash text
+    hash text,
+    scraped_at text DEFAULT current_timestamp,
+    updated_at text DEFAULT current_timestamp
 );
 
 -- noqa: disable=PRS
@@ -23,7 +25,9 @@ INSERT INTO
     calendar,
     ad_damnum,
     court,
-    hash
+    hash,
+    scraped_at,
+    updated_at
   )
 SELECT
   case_number,
@@ -33,6 +37,8 @@ SELECT
   calendar,
   ad_damnum,
   court,
-  hash
+  hash,
+  scraped_at,
+  updated_at
 FROM
   raw_case;
