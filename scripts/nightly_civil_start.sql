@@ -18,7 +18,6 @@ WITH serials AS (
         AND substr(case_number, 1, 4) = strftime('%Y', current_timestamp)
 )
 
--- If we don't have any cases for the current year, start from zero
 SELECT coalesce((
     SELECT serial
     FROM
