@@ -41,7 +41,9 @@ new_plaintiffs.csv: cases.json
 new_defendants.csv: cases.json
 	cat $^ | jq '.[] | . as $$p | .defendants[] | [., $$p.case_number] | @csv' -r > $@
 
-cases.json : chancery.jl
+cases.json : civil-2.jl civil-3.jl civil-4.jl civil-5.jl \
+             civil-6.jl civil-101.jl civil-104.jl civil-11.jl \
+             civil-13.jl civil-14.jl civil-15.jl civil-17.jl chancery.jl
 	cat $^ | sort | python scripts/remove_dupe_cases.py | jq --slurp '.' > $@
 
 # Query parameterized by civil case subdivision
@@ -50,6 +52,7 @@ CIVIL_SCRAPE_START_QUERY=$(shell tail -n +2 scripts/nightly_civil_start.sql)
 civil-%.jl: cases.db
 	START=$$(sqlite-utils query --csv --no-headers cases.db \
 	      "$(CIVIL_SCRAPE_START_QUERY)" -p subdivision $*); \
+				echo $$START; \
 	      scrapy crawl civil -a division=$* -a start=$$START -O $@;
 
 chancery.jl: cases.db
