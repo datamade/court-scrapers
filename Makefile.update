@@ -27,26 +27,22 @@ rescraped_cases.db : attorney.csv defendant.csv plaintiff.csv court_case.csv eve
             plaintiff case_number court_case case_number \
             event case_number court_case case_number
 	sqlite-utils transform $@ defendant \
-            --rename _key order \
+            --drop _key \
             --column-order case_number \
-            --column-order order \
             --column-order defendant
 	sqlite-utils transform $@ attorney \
-            --rename _key order \
+            --drop _key \
             --column-order case_number \
-            --column-order order \
             --column-order attorney
 	sqlite-utils transform $@ event \
-            --rename _key order \
+            --drop _key \
             --column-order case_number \
-            --column-order order \
             --column-order date \
             --column-order description \
             --column-order comments
 	sqlite-utils transform $@ plaintiff \
-            --rename _key order \
+            --drop _key \
             --column-order case_number \
-            --column-order order \
             --column-order plaintiff
 	sqlite-utils convert $@ court_case filing_date 'r.parsedate(value)'
 	sqlite-utils convert $@ event date 'r.parsedate(value)'
@@ -71,10 +67,10 @@ rescraped_cases.json: rescraped_chancery_cases.jl rescraped_civil_cases.jl
 	cat $^ | jq --slurp '.' > $@
 
 rescraped_civil_cases.jl : to_rescrape.civil.csv
-	 scrapy crawl civil -a case_numbers_file=$< -O $@
+	scrapy crawl civil -s CLOSESPIDER_TIMEOUT=7200 -a case_numbers_file=$< -O $@
 
 rescraped_chancery_cases.jl : to_rescrape.chancery.csv
-	 scrapy crawl chancery -a case_numbers_file=$< -O $@
+	scrapy crawl chancery -s CLOSESPIDER_TIMEOUT=7200 -a case_numbers_file=$< -O $@
 
 TO_SCRAPE_QUERY=$(shell tail -n +6 scripts/to_scrape.sql)
 
