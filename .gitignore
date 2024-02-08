@@ -6,9 +6,6 @@ cases.zip
 *.db
 *.json
 
-# Perl
-*.pl
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

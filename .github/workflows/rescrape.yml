@@ -23,6 +23,7 @@ jobs:
         run: |
           pip install -U pyopenssl cryptography
           pip install -r requirements.txt
+          cpanm https://github.com/jsnell/json-to-multicsv/archive/refs/heads/master.zip
 
       - name: Download latest database zip
         uses: robinraju/release-downloader@v1.8
