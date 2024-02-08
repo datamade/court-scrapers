@@ -19,8 +19,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install sqlite3
 
+      - uses: shogo82148/actions-setup-perl@v1
       - name: Install requirements
-        uses: shogo82148/actions-setup-perl@v1
         run: |
           pip install -U pyopenssl cryptography
           pip install -r requirements.txt
