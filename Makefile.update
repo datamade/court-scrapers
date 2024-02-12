@@ -56,7 +56,7 @@ court_case.csv : court_case_raw.csv
 	cat $< | sed -r '1s/[a-z0-9_]+\.//g' > $@
 
 court_case_raw.attorney.csv court_case_raw.defendant.csv court_case_raw.plaintiff.csv court_case_raw.csv court_case_raw.event.csv : rescraped_cases.json
-	perl json-to-multicsv.pl --file $< \
+	json-to-multicsv.pl --file $< \
             --path /:table:court_case_raw \
             --path /*/events/:table:event \
             --path /*/plaintiffs/:table:plaintiff \
