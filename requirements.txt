@@ -5,3 +5,4 @@ csvs-to-sqlite
 sqlite-utils
 csvkit
 sqlean.py
+pandas==1.5.2
