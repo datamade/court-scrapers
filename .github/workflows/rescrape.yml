@@ -38,13 +38,13 @@ jobs:
         run: |
           unzip -P '${{ secrets.CASE_DB_PW }}' cases.db.zip && rm cases.db.zip
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-
       - name: Run scrape
         run: |
           echo $BEGIN_COURTS_RUN
           make -f Makefile.update update_db
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
 
       - name: Setup database for upload
         run: |
