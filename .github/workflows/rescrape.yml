@@ -2,9 +2,8 @@ name: Rescrape cases
 
 on:
   workflow_dispatch:
-  pull_request:
   schedule:
-    - cron: '0 21 * * *'
+     - cron: '0 21 * * *'
 
 jobs:
   scrape:
@@ -31,8 +30,8 @@ jobs:
         uses: robinraju/release-downloader@v1.8
         with:
           latest: true
-          tag: 'nightly'
-          fileName: '*.db.zip'
+          tag: "nightly"
+          fileName: "*.db.zip"
 
       - name: Decrypt database
         run: |
@@ -42,9 +41,6 @@ jobs:
         run: |
           echo $BEGIN_COURTS_RUN
           make -f Makefile.update update_db
-
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
 
       - name: Setup database for upload
         run: |
@@ -83,8 +79,8 @@ jobs:
         uses: robinraju/release-downloader@v1.8
         with:
           latest: true
-          tag: 'nightly'
-          fileName: '*.db.zip'
+          tag: "nightly"
+          fileName: "*.db.zip"
 
       - name: Decrypt database
         run: |
@@ -98,7 +94,7 @@ jobs:
         uses: akhileshns/heroku-deploy@v3.12.14
         with:
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
-          heroku_app_name: ''
+          heroku_app_name: ""
           heroku_email: ${{ secrets.HEROKU_EMAIL }}
           justlogin: true
 
