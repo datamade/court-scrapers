@@ -2,6 +2,7 @@ name: Rescrape cases
 
 on:
   workflow_dispatch:
+  pull_request:
   schedule:
      - cron: '0 21 * * *'
 
