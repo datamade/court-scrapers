@@ -1,4 +1,5 @@
 from abc import ABC
+from datetime import datetime, timedelta
 
 from scrapy import Spider, Request
 from scrapy.http import FormRequest
@@ -20,7 +21,18 @@ class CourtCallSpider(ABC, Spider):
     def nextBusinessDays(self, n):
         """Returns the dates of the next n business days."""
 
-        return ["3/12/2024"]
+        current_date = datetime.today()
+        count = 0
+        while count <= n:
+            yield f"{current_date.month}/{current_date.day}/{current_date.year}"
+
+            next_date = current_date + timedelta(days=1)
+            while next_date.weekday() > 4:
+                # Skip weekends
+                next_date += timedelta(days=1)
+
+            current_date = next_date
+            count += 1
 
     def start_requests(self):
         for date in self.nextBusinessDays(5):
@@ -147,7 +159,6 @@ class CourtCallSpider(ABC, Spider):
             case["hash"] = dict_hash(case)
             yield case
 
-        breakpoint()
         self.current_page += 1
         next_page = self.has_page_num(self.current_page, response)
         if not next_page:
