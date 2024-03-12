@@ -15,7 +15,6 @@ class CourtCallSpider(ABC, Spider):
     url = "https://casesearch.cookcountyclerkofcourt.org/CourtCallSearch.aspx"
 
     def __init__(self, **kwargs):
-        self.current_page = 1
         super().__init__(**kwargs)
 
     def nextBusinessDays(self, n):
@@ -36,7 +35,6 @@ class CourtCallSpider(ABC, Spider):
 
     def start_requests(self):
         for date in self.nextBusinessDays(5):
-            self.current_page = 1
             yield Request(
                 CourtCallSpider.url,
                 meta={
@@ -108,6 +106,7 @@ class CourtCallSpider(ABC, Spider):
                         ],
                     },
                     "date": date,
+                    "result_page_num": 1,
                 },
                 errback=self.handle_error,
             )
@@ -159,15 +158,16 @@ class CourtCallSpider(ABC, Spider):
             case["hash"] = dict_hash(case)
             yield case
 
-        self.current_page += 1
-        next_page = self.has_page_num(self.current_page, response)
-        if not next_page:
+        next_page_num = response.meta["result_page_num"] + 1
+        next_page_exists = self.has_page_num(next_page_num, response)
+        if not next_page_exists:
             return
 
         # self._success(response)
-        next_page_form_data = self.get_page_n_form_data(self.current_page, response)
+        next_page_form_data = self.get_page_n_form_data(next_page_num, response)
         yield FormRequest.from_response(
             response,
+            meta={"result_page_num": next_page_num},
             formxpath="//form[@id='ctl01']",
             formdata=next_page_form_data,
             callback=self.parse,
