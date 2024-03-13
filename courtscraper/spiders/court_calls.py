@@ -109,18 +109,29 @@ class CourtCallSpider(ABC, Spider):
                     "result_page_num": 1,
                 },
                 errback=self.handle_error,
+                callback=self.parse_results,
             )
 
     def has_page_num(self, n, response):
-        """Check if there's another page of court calls."""
+        """Check if there's an nth page of court call results."""
+
         tree = html.fromstring(response.text)
         page_table = tree.xpath("//table")[1]
         next_page_link = page_table.xpath(f".//a[contains(@href,'Page${n}')]")
         return bool(next_page_link)
 
     def get_court_calls(self, response):
+        """Returns the court calls found on a result page."""
+
         tree = html.fromstring(response.text)
         results_table = tree.xpath("//table[@id='MainContent_grdRecords']")[0]
+
+        no_results = results_table.xpath(
+            ".//*[text()[contains(.,'No cases found matching your selected"
+            "criteria.')]]"
+        )
+        if no_results:
+            return
 
         rows = results_table.xpath(".//tr")
         headers = rows[0].xpath(".//a/text()")
@@ -130,6 +141,14 @@ class CourtCallSpider(ABC, Spider):
                 yield dict(zip(headers, cells))
 
     def extract_form(self, response, form_xpath):
+        """
+        ASP.NET pages are essentially forms that store the data needed to send
+        POST requests in hidden form inputs on the page.
+
+        From https://www.trickster.dev/post/scraping-legacy-asp-net-site-with-
+        scrapy-a-real-example/
+        """
+
         form_data = dict()
 
         for hidden_input in response.xpath(form_xpath).xpath(
@@ -147,17 +166,26 @@ class CourtCallSpider(ABC, Spider):
         return form_data
 
     def get_page_n_form_data(self, n, response):
+        """
+        Returns the form fields needed to send a POST request
+        for the nth page of court call results.
+        """
+
         form_data = self.extract_form(response, "//form[@id='ctl01']")
         form_data["__EVENTTARGET"] = "ctl00$MainContent$grdRecords"
         form_data["__EVENTARGUMENT"] = f"Page${n}"
         return form_data
 
-    def parse(self, response):
+    def parse_results(self, response):
         cases = self.get_court_calls(response)
+        if not cases:
+            return
+
         for case in cases:
             case["hash"] = dict_hash(case)
             yield case
 
+        # Request the next page of results
         next_page_num = response.meta["result_page_num"] + 1
         next_page_exists = self.has_page_num(next_page_num, response)
         if not next_page_exists:
@@ -170,7 +198,7 @@ class CourtCallSpider(ABC, Spider):
             meta={"result_page_num": next_page_num},
             formxpath="//form[@id='ctl01']",
             formdata=next_page_form_data,
-            callback=self.parse,
+            callback=self.parse_results,
             dont_click=True,
         )
 
