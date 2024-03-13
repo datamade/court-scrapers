@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 
 from scrapy import Spider, Request
 from scrapy.http import FormRequest
+from scrapy.exceptions import CloseSpider
 from scrapy.spidermiddlewares.httperror import HttpError
 
 from lxml import html
@@ -15,6 +16,7 @@ class CourtCallSpider(ABC, Spider):
     url = "https://casesearch.cookcountyclerkofcourt.org/CourtCallSearch.aspx"
 
     def __init__(self, **kwargs):
+        self.failures = set()
         super().__init__(**kwargs)
 
     def nextBusinessDays(self, n):
@@ -191,7 +193,6 @@ class CourtCallSpider(ABC, Spider):
         if not next_page_exists:
             return
 
-        # self._success(response)
         next_page_form_data = self.get_page_n_form_data(next_page_num, response)
         yield FormRequest.from_response(
             response,
@@ -202,12 +203,20 @@ class CourtCallSpider(ABC, Spider):
             dont_click=True,
         )
 
+    def _failing_responses(self, response):
+        self.failures.add(
+            f"{response.meta['date']} page {response.meta['result_page_num']}"
+        )
+
+        self.logger.info(f'failures: {", ".join(sorted(self.failures))}')
+
+        if len(self.failures) > 20:
+            raise CloseSpider("run of failures")
+
     def handle_error(self, failure):
         if failure.check(HttpError):
             response = failure.value.response
-            if response.status == 404:
-                self._missing_case(response)
-            elif response.status == 500:
+            if response.status in (404, 500):
                 self._failing_responses(response)
         else:
             self.logger.error(repr(failure))
