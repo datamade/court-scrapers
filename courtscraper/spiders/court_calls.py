@@ -179,13 +179,13 @@ class CourtCallSpider(ABC, Spider):
         return form_data
 
     def parse_results(self, response):
-        cases = self.get_court_calls(response)
-        if not cases:
+        results = self.get_court_calls(response)
+        if not results:
             return
 
-        for case in cases:
-            case["hash"] = dict_hash(case)
-            yield case
+        for court_call in results:
+            court_call["hash"] = dict_hash(court_call)
+            yield court_call
 
         # Request the next page of results
         next_page_num = response.meta["result_page_num"] + 1
