@@ -68,8 +68,19 @@ SELECT * FROM plaintiff
 WHERE
     case_number IN (SELECT * FROM updated_case);
 
+CREATE TEMPORARY TABLE unchanged_case(num text);
+INSERT INTO
+  unchanged_case
+SELECT
+  a.case_number
+FROM
+  court_case as a
+  LEFT JOIN cases.court_case as b ON a.case_number = b.case_number
+WHERE
+  a.hash = b.hash;
+
 -- For cases that haven't changed, just update their scraped_at field
 UPDATE cases.court_case
 SET scraped_at = CURRENT_TIMESTAMP
 WHERE
-    case_number NOT IN (SELECT * FROM updated_case);
+    case_number IN (SELECT * FROM unchanged_case);
