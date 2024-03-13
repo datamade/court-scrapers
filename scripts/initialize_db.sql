@@ -39,3 +39,17 @@ CREATE TABLE event(
   comments text,
   FOREIGN KEY(case_number) REFERENCES court_case(case_number)
 );
+
+CREATE TABLE court_call(
+	case_number text not null,
+	division,
+	plaintiff,
+	defendant,
+	court_date,
+	room,
+	district,
+	sequence,
+	time,
+	hash,
+  FOREIGN KEY(case_number) REFERENCES court_case(case_number)
+);

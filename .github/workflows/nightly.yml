@@ -35,10 +35,13 @@ jobs:
         run: |
           unzip -P '${{ secrets.CASE_DB_PW }}' cases.db.zip && rm cases.db.zip
 
-      - name: Run scrape
+      - name: Run case scrape
         run: |
           echo $BEGIN_COURTS_RUN
           make get_new_records
+
+      - name: Scrape court calls
+          make -f Makefile.courtcalls all
 
       - name: Setup database for upload
         run: |
