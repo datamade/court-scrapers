@@ -41,6 +41,7 @@ jobs:
           make get_new_records
 
       - name: Scrape court calls
+        run: |
           make -f Makefile.courtcalls all
 
       - name: Setup database for upload
