@@ -6,3 +6,4 @@ sqlite-utils
 csvkit
 sqlean.py
 pandas==1.5.2
+attrs==23.2.0
