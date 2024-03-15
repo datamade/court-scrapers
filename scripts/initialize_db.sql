@@ -8,7 +8,7 @@ CREATE TABLE court_case(
   calendar text not null,
   ad_damnum text not null,
   court text not null,
-  hash text not null,
+  hash text,
   scraped_at text default CURRENT_TIMESTAMP,
   updated_at text default CURRENT_TIMESTAMP
 	);
