@@ -1,4 +1,3 @@
-from abc import ABC
 from datetime import datetime, timedelta
 
 from scrapy import Spider, Request
@@ -11,7 +10,7 @@ from lxml import html
 from scripts.hash import dict_hash
 
 
-class CourtCallSpider(ABC, Spider):
+class CourtCallSpider(Spider):
     name = "courtcalls"
     url = "https://casesearch.cookcountyclerkofcourt.org/CourtCallSearch.aspx"
 
@@ -19,7 +18,7 @@ class CourtCallSpider(ABC, Spider):
         self.failures = set()
         super().__init__(**kwargs)
 
-    def nextBusinessDays(self, n):
+    def next_business_days(self, n):
         """Returns the dates of the next n business days."""
 
         current_date = datetime.today()
@@ -36,7 +35,7 @@ class CourtCallSpider(ABC, Spider):
             count += 1
 
     def start_requests(self):
-        for date in self.nextBusinessDays(5):
+        for date in self.next_business_days(5):
             yield Request(
                 CourtCallSpider.url,
                 meta={
