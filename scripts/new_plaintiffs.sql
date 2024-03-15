@@ -1,6 +1,6 @@
 CREATE TEMPORARY TABLE raw_plaintiff (
-    plaintiff text,
-    case_number text
+    plaintiff text NOT NULL,
+    case_number text NOT NULL
 );
 
 -- noqa: disable=PRS
