@@ -1,12 +1,12 @@
 CREATE TEMPORARY TABLE raw_case (
-    ad_damnum text,
-    calendar text,
-    case_number text,
-    case_type text,
-    court text,
-    division text,
-    filing_date text,
-    hash text,
+    ad_damnum text NOT NULL,
+    calendar text NOT NULL,
+    case_number text NOT NULL,
+    case_type text NOT NULL,
+    court text NOT NULL,
+    division text NOT NULL,
+    filing_date text NOT NULL,
+    hash text NOT NULL,
     scraped_at text DEFAULT current_timestamp,
     updated_at text DEFAULT current_timestamp
 );

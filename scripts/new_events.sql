@@ -1,8 +1,8 @@
 CREATE TEMPORARY TABLE raw_events (
     description text,
-    date text,
+    date text NOT NULL,
     comments text,
-    case_number text
+    case_number text NOT NULL
 );
 
 -- noqa: disable=PRS
