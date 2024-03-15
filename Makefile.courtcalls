@@ -1,0 +1,14 @@
+# Makefile for scraping court calls
+
+.PHONY : all
+all: court_calls.csv cases.db
+	cat $< | sqlite3 cases.db -init scripts/import_court_calls.sql -bail
+
+court_calls.csv: court_calls.json
+	cat $^ | jq '.[] | [.["Case Number"], .["Division"], .["Plaintiff"], .["Defendant"], .["Court Date"], .["Room"], .["District"], .["Sequence #"], .["Time"], .hash] | @csv' -r > $@
+
+court_calls.json: court_calls.jl
+	cat $^ | jq --slurp '.' > $@
+
+court_calls.jl : cases.db
+	scrapy crawl courtcalls -s CLOSESPIDER_TIMEOUT=14400 -O $@

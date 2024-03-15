@@ -1,13 +1,13 @@
-name: Nightly case scrape
+name: Court call scrape
 
 on:
   workflow_dispatch:
   schedule:
-     - cron: '15 4 * * *'
+     - cron: '15 10 * * *'
 
 jobs:
   scrape:
-    name: Scrape new cases
+    name: Scrape court calls
     runs-on: ubuntu-latest
 
     steps:
@@ -35,10 +35,9 @@ jobs:
         run: |
           unzip -P '${{ secrets.CASE_DB_PW }}' cases.db.zip && rm cases.db.zip
 
-      - name: Run case scrape
+      - name: Scrape court calls
         run: |
-          echo $BEGIN_COURTS_RUN
-          make get_new_records
+          make -f Makefile.courtcalls all
 
       - name: Setup database for upload
         run: |
