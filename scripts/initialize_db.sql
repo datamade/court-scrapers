@@ -34,7 +34,7 @@ CREATE TABLE attorney(
 
 CREATE TABLE event(
   case_number text not null,
-  date text not null CHECK(date IS strftime('%Y-%m-%d', date)),
+  date text not null,
   description text,
   comments text,
   FOREIGN KEY(case_number) REFERENCES court_case(case_number)
