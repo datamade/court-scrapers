@@ -8,6 +8,7 @@ CREATE TEMPORARY TABLE raw_court_call (
     district text,
     sequence text,
     time text,
+    call_type text,
     hash text
 );
 
@@ -28,6 +29,7 @@ INSERT INTO
     district,
     sequence,
     time,
+    call_type,
     hash
   )
 SELECT
@@ -40,6 +42,7 @@ SELECT
   district,
   sequence,
   time,
+  call_type,
   hash
 FROM
   raw_court_call

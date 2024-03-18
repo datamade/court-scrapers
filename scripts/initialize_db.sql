@@ -50,6 +50,7 @@ CREATE TABLE court_call(
 	district,
 	sequence,
 	time,
+	call_type,
 	hash,
   FOREIGN KEY(case_number) REFERENCES court_case(case_number)
 );
