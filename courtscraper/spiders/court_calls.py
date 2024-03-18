@@ -129,7 +129,7 @@ class CourtCallSpider(Spider):
 
         no_results = results_table.xpath(
             ".//*[text()[contains(.,'No cases found matching your selected"
-            "criteria.')]]"
+            " criteria.')]]"
         )
         if no_results:
             return
@@ -178,7 +178,7 @@ class CourtCallSpider(Spider):
         return form_data
 
     def parse_results(self, response):
-        results = self.get_court_calls(response)
+        results = list(self.get_court_calls(response))
         if not results:
             return
 
