@@ -111,6 +111,6 @@ jobs:
           datasette publish heroku cases.db \
               -n court-scraper \
               -m metadata.json \
-              --setting sql_time_limit_ms 60000 \
+              --extra-options="--setting sql_time_limit_ms 60000" \
               --install datasette-auth-passwords \
               --plugin-secret datasette-auth-passwords root_password_hash '${{ env.hash }}'
