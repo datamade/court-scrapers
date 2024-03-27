@@ -18,6 +18,8 @@ class CourtCallSpider(Spider):
         "DOWNLOAD_DELAY": 2,
         "AUTOTHROTTLE_ENABLED": True,
         "CONCURRENT_REQUESTS": 8,
+        "USER_AGENT": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:124.0) "
+        "Gecko/20100101 Firefox/124.0",
     }
 
     def __init__(self, **kwargs):
