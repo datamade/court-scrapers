@@ -14,6 +14,11 @@ class CourtCallSpider(Spider):
     name = "courtcalls"
     url = "https://casesearch.cookcountyclerkofcourt.org/CourtCallSearch.aspx"
 
+    custom_settings = {
+        "DOWNLOAD_DELAY": 2,
+        "AUTOTHROTTLE_ENABLED": True,
+    }
+
     def __init__(self, **kwargs):
         self.failures = set()
         super().__init__(**kwargs)
