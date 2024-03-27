@@ -14,6 +14,12 @@ class CourtCallSpider(Spider):
     name = "courtcalls"
     url = "https://casesearch.cookcountyclerkofcourt.org/CourtCallSearch.aspx"
 
+    custom_settings = {
+        "DOWNLOAD_DELAY": 2,
+        "AUTOTHROTTLE_ENABLED": True,
+        "CONCURRENT_REQUESTS": 8,
+    }
+
     def __init__(self, **kwargs):
         self.failures = set()
         super().__init__(**kwargs)
@@ -64,7 +70,7 @@ class CourtCallSpider(Spider):
                                 "action": "waitForSelector",
                                 "selector": {
                                     "type": "css",
-                                    "value": "#MainContent_dtTxt",
+                                    "value": "#MainContent_ddlDivisionCode",
                                 },
                                 "timeout": 5,
                                 "onError": "return",
@@ -110,14 +116,18 @@ class CourtCallSpider(Spider):
                     "result_page_num": 1,
                 },
                 errback=self.handle_error,
-                callback=self.parse_results,
+                callback=self.parse_results_page,
             )
 
     def has_page_num(self, n, response):
         """Check if there's an nth page of court call results."""
 
         tree = html.fromstring(response.text)
-        page_table = tree.xpath("//table")[1]
+        try:
+            page_table = tree.xpath("//table")[1]
+        except IndexError:
+            return False
+
         next_page_link = page_table.xpath(f".//a[contains(@href,'Page${n}')]")
         return bool(next_page_link)
 
@@ -129,17 +139,38 @@ class CourtCallSpider(Spider):
 
         no_results = results_table.xpath(
             ".//*[text()[contains(.,'No cases found matching your selected"
-            "criteria.')]]"
+            " criteria.')]]"
         )
         if no_results:
-            return
+            return None
 
         rows = results_table.xpath(".//tr")
         headers = rows[0].xpath(".//a/text()")
-        for row in rows[1:-1]:
+        for result_num, row in enumerate(rows[1:-1]):
             cells = row.xpath(".//td/text()")
             if cells:
-                yield dict(zip(headers, cells))
+                court_call = dict(zip(headers, cells))
+
+                # Get calendar value from the case detail page
+                form_data = self.extract_form(response, "//form[@id='ctl01']")
+                form_data["__EVENTTARGET"] = "ctl00$MainContent$grdRecords"
+                form_data["__EVENTARGUMENT"] = f"Select${result_num}"
+                yield FormRequest.from_response(
+                    response,
+                    meta={"court_call": court_call},
+                    formxpath="//form[@id='ctl01']",
+                    formdata=form_data,
+                    callback=self.parse_calendar,
+                    dont_click=True,
+                )
+
+    def parse_calendar(self, response):
+        """Adds the calendar and hash to a court call's dictionary."""
+
+        calendar = response.xpath("//span[@id='MainContent_lblCalendar']/text()").get()
+        court_call = {**response.meta["court_call"], "Calendar": calendar}
+        court_call["hash"] = dict_hash(court_call)
+        return court_call
 
     def extract_form(self, response, form_xpath):
         """
@@ -177,14 +208,8 @@ class CourtCallSpider(Spider):
         form_data["__EVENTARGUMENT"] = f"Page${n}"
         return form_data
 
-    def parse_results(self, response):
-        results = self.get_court_calls(response)
-        if not results:
-            return
-
-        for court_call in results:
-            court_call["hash"] = dict_hash(court_call)
-            yield court_call
+    def parse_results_page(self, response):
+        yield from self.get_court_calls(response)
 
         # Request the next page of results
         next_page_num = response.meta["result_page_num"] + 1
@@ -198,7 +223,7 @@ class CourtCallSpider(Spider):
             meta={"result_page_num": next_page_num},
             formxpath="//form[@id='ctl01']",
             formdata=next_page_form_data,
-            callback=self.parse_results,
+            callback=self.parse_results_page,
             dont_click=True,
         )
 
