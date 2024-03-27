@@ -17,6 +17,7 @@ class CourtCallSpider(Spider):
     custom_settings = {
         "DOWNLOAD_DELAY": 2,
         "AUTOTHROTTLE_ENABLED": True,
+        "CONCURRENT_REQUESTS": 8,
     }
 
     def __init__(self, **kwargs):
