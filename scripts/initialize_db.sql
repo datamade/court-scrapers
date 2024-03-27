@@ -45,6 +45,7 @@ CREATE TABLE court_call(
 	division,
 	plaintiff,
 	defendant,
+	calendar,
 	court_date,
 	room,
 	district,
