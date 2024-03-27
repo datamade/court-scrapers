@@ -70,7 +70,7 @@ class CourtCallSpider(Spider):
                                 "action": "waitForSelector",
                                 "selector": {
                                     "type": "css",
-                                    "value": "#MainContent_dtTxt",
+                                    "value": "#MainContent_ddlDivisionCode",
                                 },
                                 "timeout": 5,
                                 "onError": "return",
@@ -123,7 +123,11 @@ class CourtCallSpider(Spider):
         """Check if there's an nth page of court call results."""
 
         tree = html.fromstring(response.text)
-        page_table = tree.xpath("//table")[1]
+        try:
+            page_table = tree.xpath("//table")[1]
+        except IndexError:
+            return False
+
         next_page_link = page_table.xpath(f".//a[contains(@href,'Page${n}')]")
         return bool(next_page_link)
 
