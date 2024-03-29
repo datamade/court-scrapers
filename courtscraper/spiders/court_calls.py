@@ -1,4 +1,4 @@
-# from datetime import datetime, timedelta
+from datetime import datetime, timedelta
 
 from scrapy import Spider, Request
 from scrapy.http import FormRequest
@@ -21,19 +21,18 @@ class CourtCallSpider(Spider):
     def next_business_days(self, n):
         """Returns the dates of the next n business days."""
 
-        return ["3/29/2024"]
-        # current_date = datetime.today()
-        # count = 0
-        # while count <= n:
-        #     yield f"{current_date.month}/{current_date.day}/{current_date.year}"
-        #
-        #     next_date = current_date + timedelta(days=1)
-        #     while next_date.weekday() > 4:
-        #         # Skip weekends
-        #         next_date += timedelta(days=1)
-        #
-        #     current_date = next_date
-        #     count += 1
+        current_date = datetime.today()
+        count = 0
+        while count <= n:
+            yield f"{current_date.month}/{current_date.day}/{current_date.year}"
+
+            next_date = current_date + timedelta(days=1)
+            while next_date.weekday() > 4:
+                # Skip weekends
+                next_date += timedelta(days=1)
+
+            current_date = next_date
+            count += 1
 
     def start_requests(self):
         for date in self.next_business_days(5):
