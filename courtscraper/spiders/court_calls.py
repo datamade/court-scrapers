@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timedelta
 
 from scrapy import Spider, Request
@@ -109,6 +110,7 @@ class CourtCallSpider(Spider):
                         },
                         "date": date,
                         "result_page_num": 1,
+                        "division": division,
                     },
                     errback=self.handle_error,
                     callback=self.parse_results_page,
@@ -122,8 +124,8 @@ class CourtCallSpider(Spider):
         next_page_link = page_table.xpath(f".//a[contains(@href,'Page${n}')]")
         return bool(next_page_link)
 
-    def get_court_calls(self, response):
-        """Returns the court calls found on a result page."""
+    def has_results(self, response):
+        """Check if a court call search results page is empty."""
 
         tree = html.fromstring(response.text)
         results_table = tree.xpath("//table[@id='MainContent_grdRecords']")[0]
@@ -135,6 +137,13 @@ class CourtCallSpider(Spider):
         if no_results:
             return None
 
+        return True
+
+    def get_court_calls(self, response):
+        """Returns the court calls found on a result page."""
+
+        tree = html.fromstring(response.text)
+        results_table = tree.xpath("//table[@id='MainContent_grdRecords']")[0]
         rows = results_table.xpath(".//tr")
         headers = rows[0].xpath(".//a/text()")
         for result_num, row in enumerate(rows[1:-1]):
@@ -200,7 +209,14 @@ class CourtCallSpider(Spider):
         return form_data
 
     def parse_results_page(self, response):
-        yield from self.get_court_calls(response)
+        if self.has_results(response):
+            yield from self.get_court_calls(response)
+        else:
+            logging.error(
+                f"No results found for division {response.meta['division']}"
+                f" on {response.meta['date']}!"
+            )
+            return
 
         # Request the next page of results
         next_page_num = response.meta["result_page_num"] + 1
@@ -211,7 +227,7 @@ class CourtCallSpider(Spider):
         next_page_form_data = self.get_page_n_form_data(next_page_num, response)
         yield FormRequest.from_response(
             response,
-            meta={"result_page_num": next_page_num},
+            meta={**response.meta, "result_page_num": next_page_num},
             formxpath="//form[@id='ctl01']",
             formdata=next_page_form_data,
             callback=self.parse_results_page,
