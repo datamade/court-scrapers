@@ -25,7 +25,8 @@ class CourtCallSpider(Spider):
         current_date = datetime.today()
         count = 0
         while count <= n:
-            yield f"{current_date.month}/{current_date.day}/{current_date.year}"
+            day = str(current_date.day).zfill(2)  # Zero pad the date
+            yield f"{current_date.month}/{day}/{current_date.year}"
 
             next_date = current_date + timedelta(days=1)
             while next_date.weekday() > 4:
