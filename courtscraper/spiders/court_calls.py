@@ -226,9 +226,15 @@ class CourtCallSpider(Spider):
             return
 
         next_page_form_data = self.get_page_n_form_data(next_page_num, response)
+
+        # Only copy over the meta entries we need
+        prev_meta = {
+            key: response.meta[key] for key in ["date", "result_page_num", "division"]
+        }
+
         yield FormRequest.from_response(
             response,
-            meta={**response.meta, "result_page_num": next_page_num},
+            meta={**prev_meta, "result_page_num": next_page_num},
             formxpath="//form[@id='ctl01']",
             formdata=next_page_form_data,
             callback=self.parse_results_page,
