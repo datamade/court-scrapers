@@ -35,83 +35,84 @@ class CourtCallSpider(Spider):
             count += 1
 
     def start_requests(self):
-        for date in self.next_business_days(5):
-            yield Request(
-                CourtCallSpider.url,
-                meta={
-                    "zyte_api_automap": {
-                        "httpResponseHeaders": True,
-                        "browserHtml": True,
-                        "actions": [
-                            {
-                                "action": "waitForSelector",
-                                "selector": {
-                                    "type": "css",
-                                    "value": "#MainContent_rblSearchType_2",
+        for division in ["CV", "CH"]:
+            for date in self.next_business_days(5):
+                yield Request(
+                    CourtCallSpider.url,
+                    meta={
+                        "zyte_api_automap": {
+                            "httpResponseHeaders": True,
+                            "browserHtml": True,
+                            "actions": [
+                                {
+                                    "action": "waitForSelector",
+                                    "selector": {
+                                        "type": "css",
+                                        "value": "#MainContent_rblSearchType_2",
+                                    },
+                                    "timeout": 5,
+                                    "onError": "return",
                                 },
-                                "timeout": 5,
-                                "onError": "return",
-                            },
-                            {
-                                "action": "click",
-                                "selector": {
-                                    "type": "css",
-                                    "value": "#MainContent_rblSearchType_2",
+                                {
+                                    "action": "click",
+                                    "selector": {
+                                        "type": "css",
+                                        "value": "#MainContent_rblSearchType_2",
+                                    },
+                                    "onError": "return",
                                 },
-                                "onError": "return",
-                            },
-                            {
-                                "action": "waitForSelector",
-                                "selector": {
-                                    "type": "css",
-                                    "value": "#MainContent_dtTxt",
+                                {
+                                    "action": "waitForSelector",
+                                    "selector": {
+                                        "type": "css",
+                                        "value": "#MainContent_dtTxt",
+                                    },
+                                    "timeout": 5,
+                                    "onError": "return",
                                 },
-                                "timeout": 5,
-                                "onError": "return",
-                            },
-                            {
-                                "action": "select",
-                                "selector": {
-                                    "type": "css",
-                                    "value": "#MainContent_ddlDivisionCode",
+                                {
+                                    "action": "select",
+                                    "selector": {
+                                        "type": "css",
+                                        "value": "#MainContent_ddlDivisionCode",
+                                    },
+                                    "values": [division],
+                                    "onError": "return",
                                 },
-                                "values": ["CV"],
-                                "onError": "return",
-                            },
-                            {
-                                "action": "type",
-                                "selector": {
-                                    "type": "css",
-                                    "value": "#MainContent_dtTxt",
+                                {
+                                    "action": "type",
+                                    "selector": {
+                                        "type": "css",
+                                        "value": "#MainContent_dtTxt",
+                                    },
+                                    "text": date,
+                                    "onError": "return",
                                 },
-                                "text": date,
-                                "onError": "return",
-                            },
-                            {
-                                "action": "click",
-                                "selector": {
-                                    "type": "css",
-                                    "value": "#MainContent_btnSearch",
+                                {
+                                    "action": "click",
+                                    "selector": {
+                                        "type": "css",
+                                        "value": "#MainContent_btnSearch",
+                                    },
+                                    "onError": "return",
                                 },
-                                "onError": "return",
-                            },
-                            {
-                                "action": "waitForSelector",
-                                "selector": {
-                                    "type": "css",
-                                    "value": "#MainContent_pnlResults",
+                                {
+                                    "action": "waitForSelector",
+                                    "selector": {
+                                        "type": "css",
+                                        "value": "#MainContent_pnlResults",
+                                    },
+                                    "timeout": 5,
+                                    "onError": "return",
                                 },
-                                "timeout": 5,
-                                "onError": "return",
-                            },
-                        ],
+                            ],
+                        },
+                        "date": date,
+                        "result_page_num": 1,
                     },
-                    "date": date,
-                    "result_page_num": 1,
-                },
-                errback=self.handle_error,
-                callback=self.parse_results_page,
-            )
+                    errback=self.handle_error,
+                    callback=self.parse_results_page,
+                )
 
     def has_page_num(self, n, response):
         """Check if there's an nth page of court call results."""
