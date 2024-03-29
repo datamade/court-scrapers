@@ -11,4 +11,4 @@ court_calls.json: court_calls.jl
 	cat $^ | jq --slurp '.' > $@
 
 court_calls.jl : cases.db
-	scrapy crawl courtcalls -s CLOSESPIDER_TIMEOUT=14400 -O $@
+	scrapy crawl courtcalls -s CLOSESPIDER_TIMEOUT=18000 -O $@
