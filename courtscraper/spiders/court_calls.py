@@ -234,7 +234,7 @@ class CourtCallSpider(Spider):
 
         yield FormRequest.from_response(
             response,
-            meta={**prev_meta, "result_page_num": next_page_num},
+            meta=prev_meta | {"result_page_num": next_page_num},
             formxpath="//form[@id='ctl01']",
             formdata=next_page_form_data,
             callback=self.parse_results_page,
