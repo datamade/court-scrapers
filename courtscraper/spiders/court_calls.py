@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timedelta
 
 from scrapy import Spider, Request
@@ -24,7 +25,8 @@ class CourtCallSpider(Spider):
         current_date = datetime.today()
         count = 0
         while count <= n:
-            yield f"{current_date.month}/{current_date.day}/{current_date.year}"
+            day = str(current_date.day).zfill(2)  # Zero pad the date
+            yield f"{current_date.month}/{day}/{current_date.year}"
 
             next_date = current_date + timedelta(days=1)
             while next_date.weekday() > 4:
@@ -35,83 +37,85 @@ class CourtCallSpider(Spider):
             count += 1
 
     def start_requests(self):
-        for date in self.next_business_days(5):
-            yield Request(
-                CourtCallSpider.url,
-                meta={
-                    "zyte_api_automap": {
-                        "httpResponseHeaders": True,
-                        "browserHtml": True,
-                        "actions": [
-                            {
-                                "action": "waitForSelector",
-                                "selector": {
-                                    "type": "css",
-                                    "value": "#MainContent_rblSearchType_2",
+        for division in ["CV", "CH"]:
+            for date in self.next_business_days(5):
+                yield Request(
+                    CourtCallSpider.url,
+                    meta={
+                        "zyte_api_automap": {
+                            "httpResponseHeaders": True,
+                            "browserHtml": True,
+                            "actions": [
+                                {
+                                    "action": "waitForSelector",
+                                    "selector": {
+                                        "type": "css",
+                                        "value": "#MainContent_rblSearchType_2",
+                                    },
+                                    "timeout": 5,
+                                    "onError": "return",
                                 },
-                                "timeout": 5,
-                                "onError": "return",
-                            },
-                            {
-                                "action": "click",
-                                "selector": {
-                                    "type": "css",
-                                    "value": "#MainContent_rblSearchType_2",
+                                {
+                                    "action": "click",
+                                    "selector": {
+                                        "type": "css",
+                                        "value": "#MainContent_rblSearchType_2",
+                                    },
+                                    "onError": "return",
                                 },
-                                "onError": "return",
-                            },
-                            {
-                                "action": "waitForSelector",
-                                "selector": {
-                                    "type": "css",
-                                    "value": "#MainContent_dtTxt",
+                                {
+                                    "action": "waitForSelector",
+                                    "selector": {
+                                        "type": "css",
+                                        "value": "#MainContent_dtTxt",
+                                    },
+                                    "timeout": 5,
+                                    "onError": "return",
                                 },
-                                "timeout": 5,
-                                "onError": "return",
-                            },
-                            {
-                                "action": "select",
-                                "selector": {
-                                    "type": "css",
-                                    "value": "#MainContent_ddlDivisionCode",
+                                {
+                                    "action": "select",
+                                    "selector": {
+                                        "type": "css",
+                                        "value": "#MainContent_ddlDivisionCode",
+                                    },
+                                    "values": [division],
+                                    "onError": "return",
                                 },
-                                "values": ["CV"],
-                                "onError": "return",
-                            },
-                            {
-                                "action": "type",
-                                "selector": {
-                                    "type": "css",
-                                    "value": "#MainContent_dtTxt",
+                                {
+                                    "action": "type",
+                                    "selector": {
+                                        "type": "css",
+                                        "value": "#MainContent_dtTxt",
+                                    },
+                                    "text": date,
+                                    "onError": "return",
                                 },
-                                "text": date,
-                                "onError": "return",
-                            },
-                            {
-                                "action": "click",
-                                "selector": {
-                                    "type": "css",
-                                    "value": "#MainContent_btnSearch",
+                                {
+                                    "action": "click",
+                                    "selector": {
+                                        "type": "css",
+                                        "value": "#MainContent_btnSearch",
+                                    },
+                                    "onError": "return",
                                 },
-                                "onError": "return",
-                            },
-                            {
-                                "action": "waitForSelector",
-                                "selector": {
-                                    "type": "css",
-                                    "value": "#MainContent_pnlResults",
+                                {
+                                    "action": "waitForSelector",
+                                    "selector": {
+                                        "type": "css",
+                                        "value": "#MainContent_pnlResults",
+                                    },
+                                    "timeout": 5,
+                                    "onError": "return",
                                 },
-                                "timeout": 5,
-                                "onError": "return",
-                            },
-                        ],
+                            ],
+                        },
+                        "date": date,
+                        "result_page_num": 1,
+                        "division": division,
                     },
-                    "date": date,
-                    "result_page_num": 1,
-                },
-                errback=self.handle_error,
-                callback=self.parse_results,
-            )
+                    errback=self.handle_error,
+                    callback=self.parse_results_page,
+                )
 
     def has_page_num(self, n, response):
         """Check if there's an nth page of court call results."""
@@ -121,25 +125,53 @@ class CourtCallSpider(Spider):
         next_page_link = page_table.xpath(f".//a[contains(@href,'Page${n}')]")
         return bool(next_page_link)
 
-    def get_court_calls(self, response):
-        """Returns the court calls found on a result page."""
+    def has_results(self, response):
+        """Check if a court call search results page is empty."""
 
         tree = html.fromstring(response.text)
         results_table = tree.xpath("//table[@id='MainContent_grdRecords']")[0]
 
         no_results = results_table.xpath(
             ".//*[text()[contains(.,'No cases found matching your selected"
-            "criteria.')]]"
+            " criteria.')]]"
         )
         if no_results:
-            return
+            return None
 
+        return True
+
+    def get_court_calls(self, response):
+        """Returns the court calls found on a result page."""
+
+        tree = html.fromstring(response.text)
+        results_table = tree.xpath("//table[@id='MainContent_grdRecords']")[0]
         rows = results_table.xpath(".//tr")
         headers = rows[0].xpath(".//a/text()")
-        for row in rows[1:-1]:
+        for result_num, row in enumerate(rows[1:-1]):
             cells = row.xpath(".//td/text()")
             if cells:
-                yield dict(zip(headers, cells))
+                court_call = dict(zip(headers, cells))
+
+                # Get calendar value from the case detail page
+                form_data = self.extract_form(response, "//form[@id='ctl01']")
+                form_data["__EVENTTARGET"] = "ctl00$MainContent$grdRecords"
+                form_data["__EVENTARGUMENT"] = f"Select${result_num}"
+                yield FormRequest.from_response(
+                    response,
+                    meta={"court_call": court_call},
+                    formxpath="//form[@id='ctl01']",
+                    formdata=form_data,
+                    callback=self.parse_calendar,
+                    dont_click=True,
+                )
+
+    def parse_calendar(self, response):
+        """Adds the calendar and hash to a court call's dictionary."""
+
+        calendar = response.xpath("//span[@id='MainContent_lblCalendar']/text()").get()
+        court_call = {**response.meta["court_call"], "Calendar": calendar}
+        court_call["hash"] = dict_hash(court_call)
+        return court_call
 
     def extract_form(self, response, form_xpath):
         """
@@ -177,14 +209,15 @@ class CourtCallSpider(Spider):
         form_data["__EVENTARGUMENT"] = f"Page${n}"
         return form_data
 
-    def parse_results(self, response):
-        results = self.get_court_calls(response)
-        if not results:
+    def parse_results_page(self, response):
+        if self.has_results(response):
+            yield from self.get_court_calls(response)
+        else:
+            logging.error(
+                f"No results found for division {response.meta['division']}"
+                f" on {response.meta['date']}!"
+            )
             return
-
-        for court_call in results:
-            court_call["hash"] = dict_hash(court_call)
-            yield court_call
 
         # Request the next page of results
         next_page_num = response.meta["result_page_num"] + 1
@@ -193,12 +226,18 @@ class CourtCallSpider(Spider):
             return
 
         next_page_form_data = self.get_page_n_form_data(next_page_num, response)
+
+        # Only copy over the meta entries we need
+        prev_meta = {
+            key: response.meta[key] for key in ["date", "result_page_num", "division"]
+        }
+
         yield FormRequest.from_response(
             response,
-            meta={"result_page_num": next_page_num},
+            meta=prev_meta | {"result_page_num": next_page_num},
             formxpath="//form[@id='ctl01']",
             formdata=next_page_form_data,
-            callback=self.parse_results,
+            callback=self.parse_results_page,
             dont_click=True,
         )
 
