@@ -26,7 +26,9 @@ SET
     updated_at = CURRENT_TIMESTAMP
 FROM court_case as r
 WHERE
-    court_case.case_number IN (SELECT * FROM updated_case);
+    r.case_number IN (SELECT * FROM updated_case)
+    AND
+    r.case_number = cases.court_case.case_number;
 
 -- Update related attorneys
 DELETE FROM cases.attorney
