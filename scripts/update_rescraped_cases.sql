@@ -13,20 +13,70 @@ FROM
 WHERE
   a.hash != b.hash;
 
-UPDATE cases.court_case
+UPDATE
+  cases.court_case
 SET
-    calendar = r.calendar,
-    filing_date = r.filing_date,
-    division = r.division,
-    case_type = r.case_type,
-    ad_damnum = r.ad_damnum,
-    court = r.court,
-    hash = r.hash,
-    scraped_at = CURRENT_TIMESTAMP,
-    updated_at = CURRENT_TIMESTAMP
-FROM court_case as r
-WHERE
-    court_case.case_number IN (SELECT * FROM updated_case);
+  calendar = (
+    SELECT
+      calendar
+    FROM
+      court_case
+    WHERE
+      court_case.case_number = cases.court_case.case_number
+  ),
+  filing_date = (
+    SELECT
+      filing_date
+    FROM
+      court_case
+    WHERE
+      court_case.case_number = cases.court_case.case_number
+  ),
+  division = (
+    SELECT
+      division
+    FROM
+      court_case
+    WHERE
+      court_case.case_number = cases.court_case.case_number
+  ),
+  case_type = (
+    SELECT
+      case_type
+    FROM
+      court_case
+    WHERE
+      court_case.case_number = cases.court_case.case_number
+  ),
+  ad_damnum = (
+    SELECT
+      ad_damnum
+    FROM
+      court_case
+    WHERE
+      court_case.case_number = cases.court_case.case_number
+  ),
+  court = (
+    SELECT
+      court
+    FROM
+      court_case
+    WHERE
+      court_case.case_number = cases.court_case.case_number
+  ),
+  hash = (
+    SELECT
+      hash
+    FROM
+      court_case
+    WHERE
+      court_case.case_number = cases.court_case.case_number
+  ),
+  scraped_at = CURRENT_TIMESTAMP,
+  updated_at = CURRENT_TIMESTAMP
+FROM
+  court_case as r
+WHERE court_case.case_number IN (SELECT * FROM updated_case);
 
 -- Update related attorneys
 DELETE FROM cases.attorney
