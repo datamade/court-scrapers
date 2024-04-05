@@ -17,12 +17,9 @@ class CourtCallSpider(Spider):
     name = "courtcalls"
     url = "https://casesearch.cookcountyclerkofcourt.org/CourtCallSearch.aspx"
 
-    custom_settings = {
-        "CONCURRENT_REQUESTS": 4,
-    }
-
     def __init__(self, **kwargs):
         self.failures = set()
+        self.case_calendars = {}
         super().__init__(**kwargs)
 
     def next_business_days(self, n):
@@ -31,8 +28,7 @@ class CourtCallSpider(Spider):
         current_date = datetime.today()
         count = 0
         while count <= n:
-            day = str(current_date.day).zfill(2)  # Zero pad the date
-            yield f"{current_date.month}/{day}/{current_date.year}"
+            yield f"{current_date.month}/{current_date.day}/{current_date.year}"
 
             next_date = current_date + timedelta(days=1)
             while next_date.weekday() > 4:
@@ -43,8 +39,7 @@ class CourtCallSpider(Spider):
             count += 1
 
     def start_requests(self):
-        # for division in ["CV", "CH"]:
-        for division in ["CV"]:
+        for division in ["CV", "CH"]:
             for date in self.next_business_days(5):
                 yield Request(
                     CourtCallSpider.url,
@@ -120,9 +115,11 @@ class CourtCallSpider(Spider):
                         "result_page_num": 1,
                         "division": division,
                         "calendars": {},
+                        "priority": -1,
                     },
                     errback=self.handle_error,
                     callback=self.parse_results_page,
+                    priority=-1,
                 )
 
     def has_page_num(self, n, response):
@@ -158,21 +155,32 @@ class CourtCallSpider(Spider):
 
         court_calls = defaultdict(list)
         case_details_to_fetch = []
+        already_requested_case = set()
         for result_num, row in enumerate(rows[1:-1]):
             cells = row.xpath(".//td/text()")
             if cells:
                 court_call = dict(zip(headers, cells))
                 case_num = court_call["Case Number"]
 
-                if not court_calls[case_num]:
+                if case_num in self.case_calendars:
+                    # Only get a case's calendar value once
+                    court_call["Calendar"] = self.case_calendars[case_num]
+                    court_call["hash"] = dict_hash(court_call)
+                elif case_num not in already_requested_case:
                     # We need to remember what position this case occupies
                     # in the results list to request the detail page
                     case_details_to_fetch.append((case_num, result_num))
+                    already_requested_case.add(case_num)
 
                 court_calls[case_num].append(court_call)
 
-        # Start filling in calendar values
-        case_num, result_num = case_details_to_fetch.pop()
+        try:
+            case_num, result_num = case_details_to_fetch.pop()
+        except IndexError:
+            # We already have calendar values for all the cases on this page
+            yield from chain.from_iterable(court_calls.values())
+            return
+
         form_data = self.extract_form(response, "//form[@id='ctl01']")
         form_data["__EVENTTARGET"] = "ctl00$MainContent$grdRecords"
         form_data["__EVENTARGUMENT"] = f"Select${result_num}"
@@ -184,11 +192,13 @@ class CourtCallSpider(Spider):
                 "court_calls": court_calls,
                 "result_page_form": form_data,
                 "result_page_response": response,
+                "priority": response.meta["priority"] - 1,
             },
             formxpath="//form[@id='ctl01']",
             formdata=form_data,
             callback=self.parse_calendar,
             dont_click=True,
+            priority=response.meta["priority"] - 1,
         )
 
     def parse_calendar(self, response):
@@ -200,11 +210,15 @@ class CourtCallSpider(Spider):
             call["Calendar"] = calendar
             call["hash"] = dict_hash(call)
 
+        self.case_calendars[response.meta["current_case"]] = calendar
+
         if not response.meta["case_details_to_fetch"]:
+            # We've got the calendar value of all of the results
+            # on the current page
             yield from chain.from_iterable(response.meta["court_calls"].values())
 
         else:
-            # Request the case detail for the next case in our stack
+            # Request the case detail for the next case on our stack
             next_case_num, next_result_num = response.meta[
                 "case_details_to_fetch"
             ].pop()
@@ -219,11 +233,13 @@ class CourtCallSpider(Spider):
                     "court_calls": response.meta["court_calls"],
                     "result_page_form": form_data,
                     "result_page_response": response.meta["result_page_response"],
+                    "priority": response.meta["priority"] - 1,
                 },
                 formxpath="//form[@id='ctl01']",
                 formdata=form_data,
                 callback=self.parse_calendar,
                 dont_click=True,
+                priority=response.meta["priority"] - 1,
             )
 
             logging.info(
@@ -267,7 +283,6 @@ class CourtCallSpider(Spider):
         return form_data
 
     def parse_results_page(self, response):
-        # breakpoint()
         if self.has_results(response):
             yield from self.get_court_calls(response)
         else:
@@ -290,20 +305,19 @@ class CourtCallSpider(Spider):
             key: response.meta[key] for key in ["date", "result_page_num", "division"]
         }
 
-        if next_page_num > 5:
-            return
-
         logging.info(
             f"Requesting page {next_page_num} of cases from "
             f"{response.meta['division']} on {response.meta['date']}..."
         )
         yield FormRequest.from_response(
             response,
-            meta=prev_meta | {"result_page_num": next_page_num},
+            meta=prev_meta
+            | {"result_page_num": next_page_num, "priority": -next_page_num * 100},
             formxpath="//form[@id='ctl01']",
             formdata=next_page_form_data,
             callback=self.parse_results_page,
             dont_click=True,
+            priority=-next_page_num * 100,
         )
 
     def _failing_responses(self, response):
