@@ -16,6 +16,17 @@ CREATE TEMPORARY TABLE raw_case (
 .import /dev/stdin raw_case
 -- noqa: enable=PRS
 
+-- Normalize filing dates to ISO format
+UPDATE raw_case
+SET
+    filing_date
+    = substr(filing_date, -4, 4)
+    || "-"
+    || substr(filing_date, 1, 2)
+    || "-"
+    || substr(filing_date, 4, 2)
+WHERE filing_date LIKE "__/__/____";
+
 INSERT INTO
   court_case(
     case_number,
