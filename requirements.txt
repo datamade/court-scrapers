@@ -1,6 +1,6 @@
 scrapy
 scrapy-zyte-api
-datasette
+git+ssh://git@github.com/fgregg/datasette.git@no_limit_csv_publish
 csvs-to-sqlite
 sqlite-utils
 csvkit
