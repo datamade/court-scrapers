@@ -1,3 +1,5 @@
+year=$(shell date +%Y)
+
 .PHONY: all
 all: upload
 
@@ -53,11 +55,11 @@ civil-%.jl: cases.db
 	START=$$(sqlite-utils query --csv --no-headers cases.db \
 	      "$(CIVIL_SCRAPE_START_QUERY)" -p subdivision $*); \
 				echo $$START; \
-	      scrapy crawl civil -a division=$* -a start=$$START -O $@;
+	      scrapy crawl civil -s CLOSESPIDER_TIMEOUT=3600 -a year=$(year) -a division=$* -a start=$$START -O $@;
 
 chancery.jl: cases.db
 	START=$$(sqlite3 cases.db < scripts/nightly_chancery_start.sql); \
-	      scrapy crawl chancery -a start=$$START -O $@;
+	      scrapy crawl chancery -a year=$(year) -a start=$$START -O $@;
 
 cases.db :
 	sqlite3 $@ < scripts/initialize_db.sql
