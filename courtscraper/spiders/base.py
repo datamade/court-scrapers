@@ -1,4 +1,6 @@
+import os
 from abc import ABC, abstractmethod
+from datetime import datetime, timedelta, timezone
 
 from scrapy import Spider
 from scrapy.exceptions import CloseSpider
@@ -27,6 +29,14 @@ class CourtSpiderBase(ABC, Spider):
         else:
             self.case_numbers = self.get_case_numbers(self.year)
 
+        start_time_iso = os.getenv(
+            "START_TIME", datetime.now(tz=timezone.utc).isoformat()
+        )
+        self.start_time = datetime.fromisoformat(start_time_iso)
+
+        time_limit_in_secs = os.getenv("TIME_LIMIT", 21600)
+        self.time_limit = timedelta(seconds=int(time_limit_in_secs))
+
         super().__init__(**kwargs)
 
     @property
@@ -46,6 +56,19 @@ class CourtSpiderBase(ABC, Spider):
     @abstractmethod
     def get_case_numbers(self):
         pass
+
+    def out_of_time(self) -> bool:
+        """
+        Checks whether the we have enough time to continue scraping.
+        We'll assume we need at most 30 minutes to clean up and finish
+        post-scrape tasks.
+        """
+
+        runtime = datetime.now(tz=timezone.utc) - self.start_time
+        if runtime >= self.time_limit:
+            return True
+
+        return False
 
     def case_numbers_from_file(self, filename):
         with open(filename) as f:

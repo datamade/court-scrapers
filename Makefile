@@ -1,4 +1,6 @@
 year=$(shell date +%Y)
+START_TIME=$(shell export TZ=UTC; date -Iseconds)
+TIME_LIMIT=21600
 
 .PHONY: all
 all: upload
@@ -54,11 +56,12 @@ CIVIL_SCRAPE_START_QUERY=$(shell tail -n +2 scripts/nightly_civil_start.sql)
 civil-%.jl: cases.db
 	START=$$(sqlite-utils query --csv --no-headers cases.db \
 	      "$(CIVIL_SCRAPE_START_QUERY)" -p subdivision $*); \
-				echo $$START; \
+	      export START_TIME=$(START_TIME); export TIME_LIMIT=$(TIME_LIMIT); \
 	      scrapy crawl civil -s CLOSESPIDER_TIMEOUT=3600 -a year=$(year) -a division=$* -a start=$$START -O $@;
 
 chancery.jl: cases.db
 	START=$$(sqlite3 cases.db < scripts/nightly_chancery_start.sql); \
+	      export START_TIME=$(START_TIME); export TIME_LIMIT=$(TIME_LIMIT); \
 	      scrapy crawl chancery -a year=$(year) -a start=$$START -O $@;
 
 cases.db :
