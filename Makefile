@@ -1,5 +1,5 @@
 year=$(shell date +%Y)
-START_TIME=$(shell export TZ=UTC; date -Iseconds)
+START_TIME="2024-05-10T09:09:58.127089+00:00"
 TIME_LIMIT=21600
 
 .PHONY: all
