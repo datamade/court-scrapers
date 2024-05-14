@@ -21,6 +21,9 @@ class ChancerySpider(CourtSpiderBase):
 
     def start_requests(self):
         for case_number in self.case_numbers:
+            if self.out_of_time():
+                break
+
             yield Request(
                 ChancerySpider.url,
                 meta={
