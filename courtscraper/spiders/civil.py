@@ -1,4 +1,5 @@
 from scrapy import Request
+from scrapy.exceptions import CloseSpider
 
 from .base import CourtSpiderBase
 
@@ -14,7 +15,8 @@ class CivilSpider(CourtSpiderBase):
     def start_requests(self):
         for case_number in self.case_numbers:
             if self.out_of_time():
-                break
+                raise CloseSpider("Hit scraping time limit.")
+                return
 
             yield Request(
                 CivilSpider.url,
