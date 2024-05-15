@@ -1,5 +1,5 @@
-year=$(shell date +%Y)
-START_TIME=$(shell export TZ=UTC; date -Iseconds)
+year:=$(shell date +%Y)
+START_TIME:=$(shell export TZ=UTC; date -Iseconds)
 TIME_LIMIT=21600
 
 .PHONY: all
