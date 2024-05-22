@@ -1,6 +1,6 @@
 year:=$(shell date +%Y)
 START_TIME:=$(shell export TZ=UTC; date -Iseconds)
-TIME_LIMIT=21600
+TIME_LIMIT=600
 
 .PHONY: all
 all: upload
@@ -45,9 +45,10 @@ new_plaintiffs.csv: cases.json
 new_defendants.csv: cases.json
 	cat $^ | jq '.[] | . as $$p | .defendants[] | [., $$p.case_number] | @csv' -r > $@
 
-cases.json : civil-2.jl civil-3.jl civil-4.jl civil-5.jl \
-             civil-6.jl civil-101.jl civil-104.jl civil-11.jl \
-             civil-13.jl civil-14.jl civil-15.jl civil-17.jl chancery.jl
+# cases.json : civil-2.jl civil-3.jl civil-4.jl civil-5.jl \
+#              civil-6.jl civil-101.jl civil-104.jl civil-11.jl \
+#              civil-13.jl civil-14.jl civil-15.jl civil-17.jl chancery.jl
+cases.json : civil-14.jl
 	cat $^ | sort | python scripts/remove_dupe_cases.py | jq --slurp '.' > $@
 
 # Query parameterized by civil case subdivision
