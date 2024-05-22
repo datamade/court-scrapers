@@ -1,6 +1,6 @@
 year:=$(shell date +%Y)
 START_TIME:=$(shell export TZ=UTC; date -Iseconds)
-TIME_LIMIT=21600
+TIME_LIMIT=19800
 
 .PHONY: all
 all: upload
