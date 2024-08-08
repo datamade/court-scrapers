@@ -47,22 +47,33 @@ new_defendants.csv: cases.json
 
 cases.json : civil-2.jl civil-3.jl civil-4.jl civil-5.jl \
              civil-6.jl civil-101.jl civil-104.jl civil-11.jl \
-             civil-13.jl civil-14.jl civil-15.jl civil-17.jl chancery.jl
+             civil-13.jl civil-14.jl civil-15.jl civil-17.jl \
+	     chancery.jl probate.jl
 	cat $^ | sort | python scripts/remove_dupe_cases.py | jq --slurp '.' > $@
 
 # Query parameterized by civil case subdivision
-CIVIL_SCRAPE_START_QUERY=$(shell tail -n +2 scripts/nightly_civil_start.sql)
+CASE_SCRAPE_START_QUERY=$(shell cat scripts/nightly_case_start.sql)
 
 civil-%.jl: cases.db
 	START=$$(sqlite-utils query --csv --no-headers cases.db \
-	      "$(CIVIL_SCRAPE_START_QUERY)" -p subdivision $*); \
+	      "$(CASE_SCRAPE_START_QUERY)" -p subdivision $* \
+	      -p court civil); \
 	      export START_TIME=$(START_TIME); export TIME_LIMIT=$(TIME_LIMIT); \
 	      scrapy crawl civil -s CLOSESPIDER_TIMEOUT=3600 -a year=$(year) -a division=$* -a start=$$START -O $@;
 
 chancery.jl: cases.db
-	START=$$(sqlite3 cases.db < scripts/nightly_chancery_start.sql); \
+	START=$$(sqlite-utils query --csv --no-headers cases.db \
+	      "$(CASE_SCRAPE_START_QUERY)" -p subdivision null \
+	      -p court chancery); \
 	      export START_TIME=$(START_TIME); export TIME_LIMIT=$(TIME_LIMIT); \
 	      scrapy crawl chancery -a year=$(year) -a start=$$START -O $@;
+
+probate.jl: cases.db
+	START=$$(sqlite-utils query --csv --no-headers cases.db \
+	      "$(CASE_SCRAPE_START_QUERY)" -p court probate \
+	      -p subdivision P); \
+	      export START_TIME=$(START_TIME); export TIME_LIMIT=$(TIME_LIMIT); \
+	      scrapy crawl probate -a year=$(year) -a start=$$START -O $@;
 
 cases.db :
 	sqlite3 $@ < scripts/initialize_db.sql

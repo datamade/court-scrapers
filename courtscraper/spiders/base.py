@@ -76,14 +76,20 @@ class CourtSpiderBase(ABC, Spider):
                 yield case_number.strip()
 
     def parse(self, response):
-        case_info = self.get_case_info(response)
-        case_info.update(
-            {
-                "events": self.get_activities(response),
-                "court": self.name,
-            }
-        )
-        case_info["hash"] = dict_hash(case_info)
+        try:
+            case_info = self.get_case_info(response)
+            case_info.update(
+                {
+                    "events": self.get_activities(response),
+                    "court": self.name,
+                }
+            )
+            case_info["hash"] = dict_hash(case_info)
+        except Exception as e:
+            self.logger.error(
+                f"Error while parsing case {response.meta['case_number']}"
+            )
+            raise e
 
         self._success(response)
 
@@ -116,11 +122,11 @@ class CourtSpiderBase(ABC, Spider):
 
         return {
             "case_number": case_number.strip(),
-            "calendar": calendar.strip(),
+            "calendar": calendar.strip() if calendar else None,
             "filing_date": filing_date.strip(),
             "division": division.strip(),
             "case_type": case_type.strip(),
-            "ad_damnum": ad_damnum.strip(),
+            "ad_damnum": ad_damnum.strip() if ad_damnum else None,
             "plaintiffs": [plaintiff.strip() for plaintiff in plaintiffs],
             "defendants": [defendant.strip() for defendant in defendants],
             "attorneys": [attorney.strip() for attorney in attorneys],
@@ -139,10 +145,13 @@ class CourtSpiderBase(ABC, Spider):
 
             for i in range(0, len(cells), 2):
                 key = cells[i].xpath("./text()").get().strip(": \n")
-                value = cells[i + 1].xpath("./text()").get()
-                if value is None:
+
+                try:
+                    value = cells[i + 1].xpath("./text()").get()
+                except IndexError:
                     value = ""
-                activity[key] = value.strip()
+
+                activity[key] = value.strip() if value else ""
 
             case_activities.append(
                 {
