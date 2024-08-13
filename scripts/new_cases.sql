@@ -49,7 +49,7 @@ SELECT
   ad_damnum,
   court,
   hash,
-  scraped_at,
-  updated_at
+  current_timestamp,
+  current_timestamp
 FROM
   raw_case;

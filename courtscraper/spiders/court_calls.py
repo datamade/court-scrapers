@@ -39,7 +39,7 @@ class CourtCallSpider(Spider):
             count += 1
 
     def start_requests(self):
-        for division in ["CV", "CH"]:
+        for division in ["CV", "CH", "PB"]:
             for date in self.next_business_days(5):
                 yield Request(
                     CourtCallSpider.url,
