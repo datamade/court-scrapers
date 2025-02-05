@@ -11,14 +11,12 @@ jobs:
     uses: ./.github/workflows/scrape.yml
     with:
       command: make -f Makefile.update update_db
-      case_db_pw: ${{ secrets.CASE_DB_PW }}
+    secrets: inherit
 
   deploy:
     name: Deploy to Heroku
     needs: scrape
     uses: ./.github/workflows/heroku_deploy.yml
     with:
-      heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
-      heroku_email: ${{ secrets.HEROKU_EMAIL }}
       heroku_app_name: ""
-      case_db_pw: ${{ secrets.CASE_DB_PW }}
+    secrets: inherit

@@ -6,9 +6,6 @@ on:
       commmand:
         required: true
         type: string
-      case_db_pw:
-        required: true
-        type: string
 
 jobs:
   scrape:
@@ -36,14 +33,14 @@ jobs:
 
       - name: Decrypt database
         run: |
-          unzip -P '${{ inputs.case_db_pw }}' cases.db.zip && rm cases.db.zip
+          unzip -P '${{ secrets.CASE_DB_PW }}' cases.db.zip && rm cases.db.zip
 
       - name: Scrape court calls
         run: ${{ inputs.command }}
 
       - name: Setup database for upload
         run: |
-          zip -P '${{ inputs.case_db_pw }}' cases.db.zip cases.db
+          zip -P '${{ secrets.CASE_DB_PW }}' cases.db.zip cases.db
 
       - name: Upload new release
         uses: WebFreak001/deploy-nightly@v3.0.0

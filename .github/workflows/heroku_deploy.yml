@@ -3,16 +3,7 @@ name: Deploy latest case database to Heroku
 on:
   workflow_call:
     inputs:
-      heroku_api_key:
-        required: true
-        type: string
-      heroku_email:
-        required: true
-        type: string
       heroku_app_name:
-        required: true
-        type: string
-      case_db_pw:
         required: true
         type: string
 
@@ -35,7 +26,7 @@ jobs:
 
       - name: Decrypt database
         run: |
-          unzip -P '${{ inputs.case_db_pw }}' cases.db.zip
+          unzip -P '${{ secrets.CASE_DB_PW }}' cases.db.zip
 
       - name: Install heroku-builds plugin
         run: |
@@ -44,9 +35,9 @@ jobs:
       - name: Login to Heroku CLI
         uses: akhileshns/heroku-deploy@v3.12.14
         with:
-          heroku_api_key: ${{ inputs.heroku_api_key }}
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
           heroku_app_name: ${{ inputs.heroku_app_name }}
-          heroku_email: ${{ inputs.heroku_email }}
+          heroku_email: ${{ secrets.HEROKU_EMAIL }}
           justlogin: true
 
       - name: Install Datasette plugins
