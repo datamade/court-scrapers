@@ -3,7 +3,7 @@ name: Scrape cases and update latest nightly release
 on:
   workflow_call:
     inputs:
-      commmand:
+      command:
         required: true
         type: string
 
