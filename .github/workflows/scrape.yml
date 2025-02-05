@@ -35,7 +35,7 @@ jobs:
         run: |
           unzip -P '${{ secrets.CASE_DB_PW }}' cases.db.zip && rm cases.db.zip
 
-      - name: Scrape court calls
+      - name: Scrape cases
         run: ${{ inputs.command }}
 
       - name: Setup database for upload
