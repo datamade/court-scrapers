@@ -6,12 +6,12 @@ on:
      - cron: '15 4 * * *'
 
 jobs:
-  scrape:
-    name: Scrape new cases
-    uses: ./.github/workflows/scrape.yml
-    with:
-      command: make get_new_records
-    secrets: inherit
+  # scrape:
+  #   name: Scrape new cases
+  #   uses: ./.github/workflows/scrape.yml
+  #   with:
+  #     command: make get_new_records
+  #   secrets: inherit
 
   deploy:
     name: Deploy to Heroku
