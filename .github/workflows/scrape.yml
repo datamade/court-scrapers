@@ -1,0 +1,61 @@
+name: Scrape cases and update latest nightly release
+
+on:
+  workflow_call:
+    inputs:
+      commmand:
+        required: true
+        type: string
+      case_db_pw:
+        required: true
+        type: string
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set current date as env variable
+        run: echo "BEGIN_COURTS_RUN=$(date +'%s')" >> $GITHUB_ENV
+      - uses: actions/checkout@v3
+      - name: upgrade sqlite3
+        run: |
+          sudo apt-get update
+          sudo apt-get install sqlite3
+
+      - name: Install requirements
+        run: |
+          pip install -U pyopenssl cryptography
+          pip install -r requirements.txt
+
+      - name: Download latest database zip
+        uses: robinraju/release-downloader@v1.8
+        with:
+          latest: true
+          tag: "nightly"
+          fileName: "*.db.zip"
+
+      - name: Decrypt database
+        run: |
+          unzip -P '${{ inputs.case_db_pw }}' cases.db.zip && rm cases.db.zip
+
+      - name: Scrape court calls
+        run: ${{ inputs.command }}
+
+      - name: Setup database for upload
+        run: |
+          zip -P '${{ inputs.case_db_pw }}' cases.db.zip cases.db
+
+      - name: Upload new release
+        uses: WebFreak001/deploy-nightly@v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: https://uploads.github.com/repos/datamade/court-scrapers/releases/131985702/assets{?name,label}
+          release_id: 131985702
+          asset_path: ./cases.db.zip
+          asset_name: cases.db.zip
+          asset_content_type: application/zip # required by GitHub API
+          max_releases: 7
+
+      - name: Keepalive
+        uses: gautamkrishnar/keepalive-workflow@v1

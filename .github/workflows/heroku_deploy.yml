@@ -1,0 +1,70 @@
+name: Deploy latest case database to Heroku
+
+on:
+  workflow_call:
+    inputs:
+      heroku_api_key:
+        required: true
+        type: string
+      heroku_email:
+        required: true
+        type: string
+      heroku_app_name:
+        required: true
+        type: string
+      case_db_pw:
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install requirements
+        run: pip install -r requirements.txt
+
+      - name: Download latest database zip
+        uses: robinraju/release-downloader@v1.8
+        with:
+          latest: true
+          tag: "nightly"
+          fileName: "*.db.zip"
+
+      - name: Decrypt database
+        run: |
+          unzip -P '${{ inputs.case_db_pw }}' cases.db.zip
+
+      - name: Install heroku-builds plugin
+        run: |
+          heroku plugins:install heroku-builds
+
+      - name: Login to Heroku CLI
+        uses: akhileshns/heroku-deploy@v3.12.14
+        with:
+          heroku_api_key: ${{ inputs.heroku_api_key }}
+          heroku_app_name: ${{ inputs.heroku_app_name }}
+          heroku_email: ${{ inputs.heroku_email }}
+          justlogin: true
+
+      - name: Install Datasette plugins
+        run: |
+          datasette install datasette-auth-passwords datasette-auth-tokens
+
+      - name: Get hashed Datasette password
+        run: |
+          # Store hash as an environment variable
+          hash=$(echo '${{ secrets.DATASETTE_INSTANCE_PW }}' \
+              | datasette hash-password --no-confirm); \
+            echo "hash=$hash" >> $GITHUB_ENV
+
+      - name: Deploy Datasette instance to Heroku
+        run: |
+          datasette publish heroku cases.db \
+              -n court-scraper \
+              -m metadata.json \
+              --extra-options="--setting sql_time_limit_ms 60000" \
+              --install datasette-auth-passwords \
+              --plugin-secret datasette-auth-passwords root_password_hash '${{ env.hash }}'

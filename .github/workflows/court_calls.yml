@@ -8,109 +8,17 @@ on:
 jobs:
   scrape:
     name: Scrape court calls
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Set current date as env variable
-        run: echo "BEGIN_COURTS_RUN=$(date +'%s')" >> $GITHUB_ENV
-      - uses: actions/checkout@v3
-      - name: upgrade sqlite3
-        run: |
-          sudo apt-get update
-          sudo apt-get install sqlite3
-
-      - name: Install requirements
-        run: |
-          pip install -U pyopenssl cryptography
-          pip install -r requirements.txt
-
-      - name: Download latest database zip
-        uses: robinraju/release-downloader@v1.8
-        with:
-          latest: true
-          tag: "nightly"
-          fileName: "*.db.zip"
-
-      - name: Decrypt database
-        run: |
-          unzip -P '${{ secrets.CASE_DB_PW }}' cases.db.zip && rm cases.db.zip
-
-      - name: Scrape court calls
-        run: |
-          make -f Makefile.courtcalls all
-
-      - name: Setup database for upload
-        run: |
-          zip -P '${{ secrets.CASE_DB_PW }}' cases.db.zip cases.db
-
-      - name: Upload new release
-        uses: WebFreak001/deploy-nightly@v3.0.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: https://uploads.github.com/repos/datamade/court-scrapers/releases/131985702/assets{?name,label}
-          release_id: 131985702
-          asset_path: ./cases.db.zip
-          asset_name: cases.db.zip
-          asset_content_type: application/zip # required by GitHub API
-          max_releases: 7
-
-      - name: Keepalive
-        uses: gautamkrishnar/keepalive-workflow@v1
+    uses: ./.github/workflows/scrape.yml
+    with:
+      command: make -f Makefile.courtcalls all
+      case_db_pw: ${{ secrets.CASE_DB_PW }}
 
   deploy:
     name: Deploy to Heroku
     needs: scrape
-    runs-on: ubuntu-latest
-
-    env:
-      HEROKU_ORGANIZATION: ${{ secrets.HEROKU_ORG }}
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Install requirements
-        run: pip install -r requirements.txt
-
-      - name: Download latest database zip
-        uses: robinraju/release-downloader@v1.8
-        with:
-          latest: true
-          tag: "nightly"
-          fileName: "*.db.zip"
-
-      - name: Decrypt database
-        run: |
-          unzip -P '${{ secrets.CASE_DB_PW }}' cases.db.zip
-
-      - name: Login to Heroku CLI
-        uses: akhileshns/heroku-deploy@v3.12.14
-        with:
-          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
-          heroku_app_name: ""
-          heroku_email: ${{ secrets.HEROKU_EMAIL }}
-          justlogin: true
-          
-      - name: Install heroku-builds plugin
-        run: |
-          heroku plugins:install heroku-builds
-
-      - name: Install Datasette plugins
-        run: |
-          datasette install datasette-auth-passwords datasette-auth-tokens
-
-      - name: Get hashed Datasette password
-        run: |
-          # Store hash as an environment variable
-          hash=$(echo '${{ secrets.DATASETTE_INSTANCE_PW }}' \
-              | datasette hash-password --no-confirm); \
-            echo "hash=$hash" >> $GITHUB_ENV
-
-      - name: Deploy Datasette instance to Heroku
-        run: |
-          datasette publish heroku cases.db \
-              -n court-scraper \
-              -m metadata.json \
-              --extra-options="--setting sql_time_limit_ms 60000" \
-              --install datasette-auth-passwords \
-              --plugin-secret datasette-auth-passwords root_password_hash '${{ env.hash }}'
+    uses: ./.github/workflows/deploy-to-heroku.yml
+    with:
+      heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+      heroku_email: ${{ secrets.HEROKU_EMAIL }}
+      heroku_app_name: ""
+      case_db_pw: ${{ secrets.CASE_DB_PW }}
