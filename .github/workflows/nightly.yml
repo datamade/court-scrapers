@@ -2,20 +2,30 @@ name: Nightly case scrape
 
 on:
   workflow_dispatch:
+    inputs:
+      command:
+        required: true
+        type: string
+        default: make get_new_records
+
   schedule:
      - cron: '15 4 * * *'
-  inputs:
-    command:
-      required: true
-      type: string
-      default: make get_new_records
 
 jobs:
-  scrape:
+  manual-scrape:
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     name: Scrape new cases
     uses: ./.github/workflows/scrape.yml
     with:
       command: ${{ github.event.inputs.command }}
+    secrets: inherit
+
+  scheduled-scrape:
+    if: ${{ github.event_name == 'schedule' }}
+    name: Scrape new cases
+    uses: ./.github/workflows/scrape.yml
+    with:
+      command: make get_new_records
     secrets: inherit
 
   deploy:
