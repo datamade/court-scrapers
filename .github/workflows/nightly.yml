@@ -8,8 +8,8 @@ on:
         type: string
         default: make get_new_records
 
-  schedule:
-     - cron: '15 4 * * *'
+  # schedule:
+  #    - cron: '15 4 * * *'
 
 jobs:
   manual_scrape:

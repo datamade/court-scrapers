@@ -2,8 +2,8 @@ name: Court call scrape
 
 on:
   workflow_dispatch:
-  schedule:
-     - cron: '15 10 * * *'
+  # schedule:
+  #    - cron: '15 10 * * *'
 
 jobs:
   scrape:
