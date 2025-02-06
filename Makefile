@@ -2,6 +2,19 @@ year:=$(shell date +%Y)
 START_TIME:=$(shell export TZ=UTC; date -Iseconds)
 TIME_LIMIT=19800
 
+# Default subdivisions (all subdivisions)
+DEFAULT_SUBDIVISIONS = 2 3 4 5 6 101 104 11 13 14 15 17 chancery probate
+
+# Override subdivisions based on input
+SUBDIVISIONS ?= $(DEFAULT_SUBDIVISIONS)
+
+# Generate subdivision file names
+SUBDIVISION_FILES = $(foreach file,$(SUBDIVISIONS),$(call parse_subdivision,$(file)))
+
+define parse_subdivision
+  $(if $(filter $(1),2 3 4 5 6 101 104 11 13 14 15 17),civil-$(1).jl,$(if $(filter $(1),chancery probate),$(1).jl,))
+endef
+
 .PHONY: all
 all: upload
 
@@ -45,10 +58,7 @@ new_plaintiffs.csv: cases.json
 new_defendants.csv: cases.json
 	cat $^ | jq '.[] | . as $$p | .defendants[] | [., $$p.case_number] | @csv' -r > $@
 
-cases.json : civil-2.jl civil-3.jl civil-4.jl civil-5.jl \
-             civil-6.jl civil-101.jl civil-104.jl civil-11.jl \
-             civil-13.jl civil-14.jl civil-15.jl civil-17.jl \
-	     chancery.jl probate.jl
+cases.json : $(SUBDIVISION_FILES)
 	cat $^ | sort | python scripts/remove_dupe_cases.py | jq --slurp '.' > $@
 
 # Query parameterized by civil case subdivision
