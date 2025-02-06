@@ -4,6 +4,11 @@ on:
   workflow_dispatch:
   schedule:
      - cron: '15 4 * * *'
+  inputs:
+    command:
+      required: true
+      type: string
+      default: make get_new_records
 
 jobs:
   scrape:
@@ -11,7 +16,6 @@ jobs:
     uses: ./.github/workflows/scrape.yml
     with:
       command: ${{ github.event.inputs.command }}
-      default: make get_new_records
     secrets: inherit
 
   deploy:
