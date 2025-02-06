@@ -12,7 +12,7 @@ on:
      - cron: '15 4 * * *'
 
 jobs:
-  manual-scrape:
+  manual_scrape:
     if: ${{ github.event_name == 'workflow_dispatch' }}
     name: Scrape new cases
     uses: ./.github/workflows/scrape.yml
@@ -20,7 +20,7 @@ jobs:
       command: ${{ github.event.inputs.command }}
     secrets: inherit
 
-  scheduled-scrape:
+  scheduled_scrape:
     if: ${{ github.event_name == 'schedule' }}
     name: Scrape new cases
     uses: ./.github/workflows/scrape.yml
@@ -30,7 +30,8 @@ jobs:
 
   deploy:
     name: Deploy to Heroku
-    needs: scrape
+    if: ${{ always() && (needs.scheduled_scrape.result == 'success' || needs.scheduled_scrape.result == 'success') }}}}
+    needs: [manual_scrape, scheduled_scrape]
     uses: ./.github/workflows/heroku_deploy.yml
     with:
       heroku_app_name: ""
