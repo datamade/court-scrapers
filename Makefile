@@ -67,21 +67,21 @@ CASE_SCRAPE_START_QUERY=$(shell cat scripts/nightly_case_start.sql)
 civil-%.jl: cases.db
 	START=$$(sqlite-utils query --csv --no-headers cases.db \
 	      "$(CASE_SCRAPE_START_QUERY)" -p subdivision $* \
-	      -p court civil); \
+	      -p court civil -p year $(year)) \
 	      export START_TIME=$(START_TIME); export TIME_LIMIT=$(TIME_LIMIT); \
 	      scrapy crawl civil -s CLOSESPIDER_TIMEOUT=3600 -a year=$(year) -a division=$* -a start=$$START -O $@;
 
 chancery.jl: cases.db
 	START=$$(sqlite-utils query --csv --no-headers cases.db \
 	      "$(CASE_SCRAPE_START_QUERY)" -p subdivision null \
-	      -p court chancery); \
+	      -p court chancery -p year $(year)) \
 	      export START_TIME=$(START_TIME); export TIME_LIMIT=$(TIME_LIMIT); \
 	      scrapy crawl chancery -a year=$(year) -a start=$$START -O $@;
 
 probate.jl: cases.db
 	START=$$(sqlite-utils query --csv --no-headers cases.db \
 	      "$(CASE_SCRAPE_START_QUERY)" -p court probate \
-	      -p subdivision P); \
+	      -p subdivision P -p year $(year)); \
 	      export START_TIME=$(START_TIME); export TIME_LIMIT=$(TIME_LIMIT); \
 	      scrapy crawl probate -a year=$(year) -a start=$$START -O $@;
 

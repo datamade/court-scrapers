@@ -26,7 +26,7 @@ serials AS (
                 ELSE 1
             END
         )
-        AND substr(case_number, 1, 4) = strftime('%Y', current_timestamp)
+	AND substr(case_number, 1, 4) = strftime(:year, current_timestamp)
 )
 
 /* If we don't have any cases for the current year, start from zero */
