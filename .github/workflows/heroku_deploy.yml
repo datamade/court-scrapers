@@ -1,6 +1,13 @@
 name: Deploy latest case database to Heroku
 
 on:
+  workflow_dispatch:
+    inputs:
+      heroku_app_name:
+        required: false
+        type: string
+        default: ""
+
   workflow_call:
     inputs:
       heroku_app_name:
@@ -42,6 +49,10 @@ jobs:
           hash=$(echo '${{ secrets.DATASETTE_INSTANCE_PW }}' \
               | datasette hash-password --no-confirm); \
             echo "hash=$hash" >> $GITHUB_ENV
+
+      - name: Install heroku-builds plugin
+        run: |
+          heroku plugins:install heroku-builds
 
       - name: Deploy Datasette instance to Heroku
         run: |
