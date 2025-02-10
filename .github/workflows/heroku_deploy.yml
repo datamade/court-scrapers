@@ -9,6 +9,7 @@ on:
 
 jobs:
   deploy:
+    runs-on: ubuntu-latest
     image: ghcr.io/${{ github.repository }}:main
 
     steps:
