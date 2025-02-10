@@ -9,17 +9,13 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    image: ghcr.io/${{ github.repository }}:main
+    credentials:
+      username: ${{ github.actor }}
+      password: ${{ secrets.github_token }}
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install Heroku
-        run: |
-          curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
-
-      - name: Install requirements
-        run: pip install -r requirements.txt
 
       - name: Download latest database zip
         uses: robinraju/release-downloader@v1.8
@@ -32,10 +28,6 @@ jobs:
         run: |
           unzip -P '${{ secrets.CASE_DB_PW }}' cases.db.zip
 
-      - name: Install heroku-builds plugin
-        run: |
-          heroku plugins:install heroku-builds
-
       - name: Login to Heroku CLI
         uses: akhileshns/heroku-deploy@v3.13.15
         with:
@@ -44,10 +36,6 @@ jobs:
           heroku_email: ${{ secrets.HEROKU_EMAIL }}
           team: ${{ secrets.HEROKU_ORG }}
           justlogin: true
-
-      - name: Install Datasette plugins
-        run: |
-          datasette install datasette-auth-passwords datasette-auth-tokens
 
       - name: Get hashed Datasette password
         run: |

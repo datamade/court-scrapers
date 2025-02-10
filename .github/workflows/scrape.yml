@@ -9,20 +9,12 @@ on:
 
 jobs:
   scrape:
-    runs-on: ubuntu-latest
+    image: ghcr.io/${{ github.repository }}:main
     steps:
       - name: Set current date as env variable
         run: echo "BEGIN_COURTS_RUN=$(date +'%s')" >> $GITHUB_ENV
-      - uses: actions/checkout@v3
-      - name: upgrade sqlite3
-        run: |
-          sudo apt-get update
-          sudo apt-get install sqlite3
 
-      - name: Install requirements
-        run: |
-          pip install -U pyopenssl cryptography
-          pip install -r requirements.txt
+      - uses: actions/checkout@v3
 
       - name: Download latest database zip
         uses: robinraju/release-downloader@v1.8

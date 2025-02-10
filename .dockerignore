@@ -1,0 +1,7 @@
+*.csv
+*.json
+*.zip
+*.jl
+*.db
+.scrapy
+venv/
