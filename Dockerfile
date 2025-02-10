@@ -3,7 +3,7 @@ FROM python:3.12-slim-bookworm
 LABEL maintainer "DataMade <info@datamade.us>"
 
 RUN apt-get update && \
-	apt-get install -y --no-install-recommends curl make sqlite3 gnupg2 jq
+	apt-get install -y --no-install-recommends curl make sqlite3 gnupg2 jq zip unzip
 
 # Install Heroku
 RUN curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
