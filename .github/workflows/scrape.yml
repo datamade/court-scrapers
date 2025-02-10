@@ -12,9 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/datamade/court-scrapers:main
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.github_token }}
 
     steps:
       - name: Set current date as env variable
