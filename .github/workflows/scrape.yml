@@ -11,7 +11,7 @@ jobs:
   scrape:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/${{ github.repository }}:main
+      image: ghcr.io/datamade/court-scrapers:main
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.github_token }}
