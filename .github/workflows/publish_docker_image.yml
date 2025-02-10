@@ -1,7 +1,9 @@
 name: Publish Docker image
 on:
   workflow_dispatch:
-  push: main
+  push:
+    branches:
+      - 'main'
 
 jobs:
   push_to_registry:
