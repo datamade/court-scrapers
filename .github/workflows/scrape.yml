@@ -50,4 +50,4 @@ jobs:
           max_releases: 7
 
       - name: Keepalive
-        uses: gautamkrishnar/keepalive-workflow@v1
+        uses: gautamkrishnar/keepalive-workflow@v2
