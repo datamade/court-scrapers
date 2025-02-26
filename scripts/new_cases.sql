@@ -59,6 +59,7 @@ SELECT
   current_timestamp
 FROM
   raw_case
+WHERE true
 ON CONFLICT (case_number) DO UPDATE SET
 	filing_date = EXCLUDED.filing_date,
 	division = EXCLUDED.division,
