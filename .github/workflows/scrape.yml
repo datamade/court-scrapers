@@ -49,5 +49,5 @@ jobs:
           asset_content_type: application/zip # required by GitHub API
           max_releases: 7
 
-      - name: Keepalive
-        uses: gautamkrishnar/keepalive-workflow@v2
+      # - name: Keepalive
+      #   uses: gautamkrishnar/keepalive-workflow@v2
