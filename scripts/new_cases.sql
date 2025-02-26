@@ -27,6 +27,12 @@ SET
     || substr(filing_date, 4, 2)
 WHERE filing_date LIKE "__/__/____";
 
+-- In case the scraped case already exists, clear the related tables
+DELETE FROM plaintiff WHERE case_number IN (SELECT case_number FROM raw_case);
+DELETE FROM defendant WHERE case_number IN (SELECT case_number FROM raw_case);
+DELETE FROM event WHERE case_number IN (SELECT case_number FROM raw_case);
+DELETE FROM attorney WHERE case_number IN (SELECT case_number FROM raw_case);
+
 INSERT INTO
   court_case(
     case_number,
@@ -52,4 +58,13 @@ SELECT
   current_timestamp,
   current_timestamp
 FROM
-  raw_case;
+  raw_case
+ON CONFLICT (case_number) DO UPDATE SET
+	filing_date = EXCLUDED.filing_date,
+	division = EXCLUDED.division,
+	case_type = EXCLUDED.case_type,
+	calendar = EXCLUDED.calendar,
+	ad_damnum = EXCLUDED.ad_damnum,
+	court = EXCLUDED.court,
+	hash = EXCLUDED.hash,
+	updated_at = current_timestamp;

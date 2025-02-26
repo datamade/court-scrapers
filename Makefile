@@ -1,6 +1,6 @@
 year:=$(shell date +%Y)
 START_TIME:=$(shell export TZ=UTC; date -Iseconds)
-TIME_LIMIT=19800
+TIME_LIMIT:=19800
 
 # Default subdivisions (all subdivisions)
 DEFAULT_SUBDIVISIONS = 2 3 4 5 6 101 104 11 13 14 15 17 chancery probate
