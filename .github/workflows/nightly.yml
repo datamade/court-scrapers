@@ -33,6 +33,4 @@ jobs:
     if: ${{ always() && (needs.scheduled_scrape.result == 'success' || needs.scheduled_scrape.result == 'success') }}}}
     needs: [manual_scrape, scheduled_scrape]
     uses: ./.github/workflows/heroku_deploy.yml
-    with:
-      heroku_app_name: ""
     secrets: inherit

@@ -2,17 +2,7 @@ name: Deploy latest case database to Heroku
 
 on:
   workflow_dispatch:
-    inputs:
-      heroku_app_name:
-        required: false
-        type: string
-        default: ""
-
   workflow_call:
-    inputs:
-      heroku_app_name:
-        required: true
-        type: string
 
 jobs:
   deploy:
@@ -49,7 +39,6 @@ jobs:
         uses: akhileshns/heroku-deploy@v3.13.15
         with:
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
-          heroku_app_name: ${{ inputs.heroku_app_name }}
           heroku_email: ${{ secrets.HEROKU_EMAIL }}
           team: ${{ secrets.HEROKU_ORG }}
           justlogin: true
