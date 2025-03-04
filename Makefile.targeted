@@ -10,9 +10,6 @@ DIVISION:="civil"
 CASE_NUMBERS:=""
 
 
-.PHONY: all
-all: upload
-
 .PHONY: clean
 clean:
 	rm *.csv *.jl *.json
@@ -63,7 +60,3 @@ cases.jl: cases.db
 
 cases.db :
 	sqlite3 $@ < scripts/initialize_db.sql
-
-.PHONY : upload
-upload : 2022_civil.json
-	python scripts/upload_scrapes.py

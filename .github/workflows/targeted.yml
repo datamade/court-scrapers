@@ -24,7 +24,7 @@ jobs:
     uses: ./.github/workflows/scrape.yml
     with:
       command: |
-        make -f Makefile.targeted DIVISION="${{ github.event.inputs.division }}" CASE_NUMBERS="${{ github.event.inputs.numbers }}"
+        make -f Makefile.targeted scrape_cases DIVISION="${{ github.event.inputs.division }}" CASE_NUMBERS="${{ github.event.inputs.numbers }}"
     secrets: inherit
 
   deploy:
