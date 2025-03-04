@@ -29,5 +29,6 @@ jobs:
 
   deploy:
     name: Deploy to Heroku
+    needs: scrape
     uses: ./.github/workflows/heroku_deploy.yml
     secrets: inherit
