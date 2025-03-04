@@ -15,7 +15,13 @@ class UnsuccessfulAutomation(Exception):
 
 class CourtSpiderBase(ABC, Spider):
     def __init__(
-        self, division="2", year=2024, start=0, case_numbers_file=None, **kwargs
+        self,
+        division="2",
+        year=2024,
+        start=0,
+        case_numbers="",  # Comma-separated string of case numbers
+        case_numbers_file=None,
+        **kwargs,
     ):
         self.year = year
         self.misses = set()
@@ -28,6 +34,9 @@ class CourtSpiderBase(ABC, Spider):
             self.case_numbers = self.case_numbers_from_file(case_numbers_file)
         else:
             self.case_numbers = self.get_case_numbers(self.year)
+
+        if case_numbers:
+            self.case_numbers = case_numbers.split(",")
 
         start_time_iso = os.getenv(
             "START_TIME", datetime.now(tz=timezone.utc).isoformat()

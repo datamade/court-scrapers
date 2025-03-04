@@ -1,0 +1,69 @@
+# Makefile for targeted manual scrapes of specific case numbers
+# Expects DIVISION and CASE_NUMBERS to be set at runtime
+# e.g. make scrape_cases CASE_NUMBERS="XXXX,XXXX,XXXX" DIVISION="chancery"
+
+year:=$(shell date +%Y)
+START_TIME:=$(shell export TZ=UTC; date -Iseconds)
+TIME_LIMIT=19800
+
+DIVISION:="civil"
+CASE_NUMBERS:=""
+
+
+.PHONY: all
+all: upload
+
+.PHONY: clean
+clean:
+	rm *.csv *.jl *.json
+
+cases.zip : cases.db
+	- rm -rf cases_csv
+	mkdir cases_csv
+	echo "select * from court_case" | sqlite3 -csv -header cases.db > cases_csv/court_case.csv
+	echo "select * from plaintiff" | sqlite3 -csv -header cases.db > cases_csv/plaintiff.csv
+	echo "select * from defendant" | sqlite3 -csv -header cases.db > cases_csv/defendant.csv
+	echo "select * from attorney" | sqlite3 -csv -header cases.db > cases_csv/attorney.csv
+	echo "select * from event" | sqlite3 -csv -header cases.db > cases_csv/event.csv
+	zip -r $@ cases_csv
+
+.PHONY: scrape_cases
+scrape_cases: import_cases import_attorneys import_events import_plaintiffs import_defendants set_subdivisions
+
+.PHONY: set_subdivisions
+set_subdivisions: cases.db
+	sqlite3 cases.db < scripts/subdivision.sql
+
+.PHONY: import_%
+import_%: %.csv cases.db
+	cat $< | sqlite3 cases.db -init scripts/new_$*.sql -bail
+
+cases.csv: cases.json
+	cat $^ | jq '.[] | [.ad_damnum, .calendar, .case_number, .case_type, .court, .division, .filing_date, .hash] | @csv' -r > $@
+
+attorneys.csv: cases.json
+	cat $^ | jq '.[] | . as $$p | .attorneys[] | [., $$p.case_number] | @csv' -r > $@
+
+events.csv: cases.json
+	cat $< | jq -r '.[] | .events[] + {case_number} | [.description, .date, .comments, .case_number] | @csv' > $@
+
+plaintiffs.csv: cases.json
+	cat $< | jq '.[] | . as $$p | .plaintiffs[] | [., $$p.case_number] | @csv' -r > $@
+
+defendants.csv: cases.json
+	cat $^ | jq '.[] | . as $$p | .defendants[] | [., $$p.case_number] | @csv' -r > $@
+
+cases.json : cases.jl
+	cat $^ | sort | python scripts/remove_dupe_cases.py | jq --slurp '.' > $@
+
+cases.jl: cases.db
+	export START_TIME=$(START_TIME); export TIME_LIMIT=$(TIME_LIMIT); \
+	scrapy crawl $(DIVISION) -s CLOSESPIDER_TIMEOUT=3600 -a year=$(year) \
+	-a case_numbers=$(CASE_NUMBERS) -O $@;
+
+cases.db :
+	sqlite3 $@ < scripts/initialize_db.sql
+
+.PHONY : upload
+upload : 2022_civil.json
+	python scripts/upload_scrapes.py

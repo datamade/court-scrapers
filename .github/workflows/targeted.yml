@@ -1,0 +1,33 @@
+name: Targeted case scrape
+
+on:
+  workflow_dispatch:
+    inputs:
+      division:
+        required: true
+        type: choice
+        description: Court division to scrape
+        options:
+          - chancery
+          - law
+          - civil
+          - probate
+
+      numbers:
+        required: true
+        type: string
+        description: Case numbers to scrape (comma-separated string)
+
+jobs:
+  scrape:
+    name: Scrape new cases
+    uses: ./.github/workflows/scrape.yml
+    with:
+      command: |
+        make -f Makefile.targeted DIVISION=${{ github.event.inputs.division }} CASE_NUMBERS=${{ github.event.inputs.numbers }}
+    secrets: inherit
+
+  deploy:
+    name: Deploy to Heroku
+    uses: ./.github/workflows/heroku_deploy.yml
+    secrets: inherit
