@@ -164,9 +164,9 @@ class CourtSpiderBase(ABC, Spider):
 
             case_activities.append(
                 {
-                    "description": activity["Event Desc"],
-                    "date": activity["Activity Date"],
-                    "comments": activity["Comments"],
+                    "description": activity.get("Event Desc"),
+                    "date": activity.get("Activity Date"),
+                    "comments": activity.get("Comments"),
                 }
             )
 
