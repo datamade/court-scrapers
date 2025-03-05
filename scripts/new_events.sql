@@ -10,6 +10,17 @@ CREATE TEMPORARY TABLE raw_events (
 .import /dev/stdin raw_events
 -- noqa: enable=PRS
 
+-- Normalize event dates to ISO format
+UPDATE raw_events
+SET
+    date
+    = substr(date, -4, 4)
+    || "-"
+    || substr(date, 1, 2)
+    || "-"
+    || substr(date, 4, 2)
+WHERE date LIKE "__/__/____";
+
 INSERT INTO
   event(
     description,
