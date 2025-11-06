@@ -47,16 +47,16 @@ new_cases.csv: cases.json
 	cat $^ | jq '.[] | [.ad_damnum, .calendar, .case_number, .case_type, .court, .division, .filing_date, .hash] | @csv' -r > $@
 
 new_attorneys.csv: cases.json
-	cat $^ | jq '.[] | . as $$p | .attorneys[] | [., $$p.case_number] | @csv' -r > $@
+	cat $^ | jq '.[] | . as $$p | .attorneys[] | [., $$p.case_number, $$p.court] | @csv' -r > $@
 
 new_events.csv: cases.json
-	cat $< | jq -r '.[] | .events[] + {case_number} | [.description, .date, .comments, .case_number] | @csv' > $@
+	cat $^ | jq -r '.[] | .court as $$court | .case_number as $$case_number | .events[] | [.description, .date, .comments, $$case_number, $$court] | @csv' > $@
 
 new_plaintiffs.csv: cases.json
-	cat $< | jq '.[] | . as $$p | .plaintiffs[] | [., $$p.case_number] | @csv' -r > $@
+	cat $< | jq '.[] | . as $$p | .plaintiffs[] | [., $$p.case_number, $$p.court] | @csv' -r > $@
 
 new_defendants.csv: cases.json
-	cat $^ | jq '.[] | . as $$p | .defendants[] | [., $$p.case_number] | @csv' -r > $@
+	cat $^ | jq '.[] | . as $$p | .defendants[] | [., $$p.case_number, $$p.court] | @csv' -r > $@
 
 cases.json : $(SUBDIVISION_FILES)
 	cat $^ | sort | python scripts/remove_dupe_cases.py | jq --slurp '.' > $@

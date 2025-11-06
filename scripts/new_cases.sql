@@ -60,7 +60,7 @@ SELECT
 FROM
   raw_case
 WHERE true
-ON CONFLICT (case_number) DO UPDATE SET
+ON CONFLICT (case_number, court) DO UPDATE SET
 	filing_date = EXCLUDED.filing_date,
 	division = EXCLUDED.division,
 	case_type = EXCLUDED.case_type,

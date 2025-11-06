@@ -10,48 +10,52 @@ CREATE TABLE court_case(
   court text not null,
   hash text,
   scraped_at text default CURRENT_TIMESTAMP,
-  updated_at text default CURRENT_TIMESTAMP
-	);
+  updated_at text default CURRENT_TIMESTAMP,
+  PRIMARY KEY (case_number, court)
+);
 -- noqa: enable=PRS
 
 CREATE TABLE plaintiff(
   case_number text not null,
-  plaintiff text not null,
-  FOREIGN KEY(case_number) REFERENCES court_case(case_number)
+  court text not null,
+  plaintiff text,
+  FOREIGN KEY(case_number, court) REFERENCES court_case(case_number, court)
 );
 
 CREATE TABLE defendant(
   case_number text not null,
+  court text not null,
   defendant text not null,
-  FOREIGN KEY(case_number) REFERENCES court_case(case_number)
+  FOREIGN KEY(case_number, court) REFERENCES court_case(case_number, court)
 );
 
 CREATE TABLE attorney(
   case_number text not null,
+  court text not null,
   attorney text not null,
-  FOREIGN KEY(case_number) REFERENCES court_case(case_number)
+  FOREIGN KEY(case_number, court) REFERENCES court_case(case_number, court)
 );
 
 CREATE TABLE event(
   case_number text not null,
+  court text not null,
   date text not null,
   description text,
   comments text,
-  FOREIGN KEY(case_number) REFERENCES court_case(case_number)
+  FOREIGN KEY(case_number, court) REFERENCES court_case(case_number, court)
 );
 
 CREATE TABLE court_call(
-	case_number text not null,
-	division,
-	plaintiff,
-	defendant,
-	calendar,
-	court_date,
-	room,
-	district,
-	sequence,
-	time,
-	call_type,
-	hash,
-  FOREIGN KEY(case_number) REFERENCES court_case(case_number)
+  case_number text not null,
+  division,
+  plaintiff,
+  defendant,
+  calendar,
+  court_date,
+  room,
+  district,
+  sequence,
+  time,
+  call_type,
+  hash,
 );

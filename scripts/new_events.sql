@@ -2,7 +2,8 @@ CREATE TEMPORARY TABLE raw_events (
     description text,
     date text NOT NULL,
     comments text,
-    case_number text NOT NULL
+    case_number text NOT NULL,
+    court text NOT NULL
 );
 
 -- noqa: disable=PRS
@@ -26,12 +27,14 @@ INSERT INTO
     description,
     date,
     comments,
-    case_number
+    case_number,
+    court
   )
 SELECT
     description,
     date,
     comments,
-    case_number
+    case_number,
+    court
 FROM
   raw_events;
