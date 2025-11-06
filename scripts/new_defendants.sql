@@ -1,6 +1,7 @@
 CREATE TEMPORARY TABLE raw_defendant (
     defendant text NOT NULL,
-    case_number text NOT NULL
+    case_number text NOT NULL,
+    court text NOT NULL
 );
 
 -- noqa: disable=PRS
@@ -8,5 +9,5 @@ CREATE TEMPORARY TABLE raw_defendant (
 .import /dev/stdin raw_defendant
 -- noqa: enable=PRS
 
-INSERT INTO defendant(defendant, case_number)
-SELECT defendant, case_number FROM raw_defendant
+INSERT INTO defendant(defendant, case_number, court)
+SELECT defendant, case_number, court FROM raw_defendant
